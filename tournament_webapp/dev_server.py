@@ -38,7 +38,7 @@ class TournamentDevServer:
         """Start the FastAPI backend server"""
         print("🔧 Starting backend API server...")
         
-        backend_dir = Path(__file__).parent / "tournament_webapp" / "backend"
+        backend_dir = Path(__file__).parent / "backend"
         
         try:
             # Change to backend directory
@@ -73,7 +73,7 @@ class TournamentDevServer:
         """Start the React frontend development server"""
         print("⚛️  Starting React frontend...")
         
-        frontend_dir = Path(__file__).parent / "tournament_webapp" / "frontend"
+        frontend_dir = Path(__file__).parent / "frontend"
         
         try:
             # Install dependencies if node_modules doesn't exist
@@ -251,7 +251,8 @@ class TournamentDevServer:
             sys.exit(1)
         
         print("✅ All dependencies available")
-      def run_production_server(self):
+    
+    def run_production_server(self):
         """Run production server"""
         print("🚀 Starting production server...")
         
@@ -276,13 +277,20 @@ class TournamentDevServer:
         backend_dir = Path(__file__).parent / "backend"
         os.chdir(backend_dir)
         
-        # Start with gunicorn for production
+        # Start with uvicorn for production
         try:
+            # Get port from environment variable with fallback
+            port = os.environ.get("PORT", "8000")
+            host = os.environ.get("HOST", "0.0.0.0")
+            workers = os.environ.get("WORKERS", "4")
+            
+            print(f"Starting server on {host}:{port} with {workers} workers")
+            
             subprocess.run([
                 "uvicorn", "tournament_api:app",
-                "--host", "0.0.0.0",
-                "--port", "8000",
-                "--workers", "4",
+                "--host", host,
+                "--port", port,
+                "--workers", workers,
                 "--access-log"
             ])
         except KeyboardInterrupt:

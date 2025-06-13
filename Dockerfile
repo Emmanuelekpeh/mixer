@@ -23,5 +23,5 @@ ENV PRODUCTION=true
 ENV MODELS_DIR=../models/deployment
 ENV ALLOWED_ORIGINS=https://ai-mixer-tournament.onrender.com,http://localhost:3000
 
-# Command to run the application - primary approach
-CMD cd tournament_webapp && python dev_server.py --production || cd tournament_webapp/backend && uvicorn tournament_api:app --host 0.0.0.0 --port $PORT
+# Simple direct command that skips the dev_server.py script
+CMD cd tournament_webapp/backend && uvicorn tournament_api:app --host 0.0.0.0 --port $PORT
