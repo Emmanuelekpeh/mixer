@@ -1,0 +1,16 @@
+# Render service definition
+services:
+  # Backend API
+  - type: web
+    name: ai-mixer-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd tournament_webapp && uvicorn backend.tournament_api:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.10.12"
+      - key: PRODUCTION
+        value: "true"
+      - key: MODELS_DIR
+        value: "../models"

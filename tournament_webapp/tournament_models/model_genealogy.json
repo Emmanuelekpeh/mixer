@@ -1,0 +1,83 @@
+{
+  "evolution_tree": {
+    "41d092e5-d994-4aa7-95b5-5ecea9a5b189": {
+      "parents": [
+        "42bf577e-d984-4f42-8f39-d425cb4eeeee",
+        "9359ff20-0a1a-4da9-ba51-8e51fc04ac98"
+      ],
+      "evolution_method": null,
+      "generation": 1,
+      "context": {
+        "vote_confidence": 0.6392846767900737,
+        "round": 1
+      },
+      "timestamp": "2025-06-11T06:15:55.073959"
+    },
+    "d3350431-97c3-4e59-8c39-d3d082c36708": {
+      "parents": [
+        "41d092e5-d994-4aa7-95b5-5ecea9a5b189",
+        "42bf577e-d984-4f42-8f39-d425cb4eeeee"
+      ],
+      "evolution_method": "weight_blending",
+      "generation": 2,
+      "context": {
+        "vote_confidence": 0.663659499260498,
+        "round": 2
+      },
+      "timestamp": "2025-06-11T06:15:55.266397"
+    },
+    "73161956-9f6c-48c5-b72e-00d867e0b512": {
+      "parents": [
+        "6b38ba7a-10be-42b9-913d-845373907a67",
+        "83af9985-839d-42e1-a4f2-73f918629423"
+      ],
+      "evolution_method": null,
+      "generation": 1,
+      "context": {
+        "vote_confidence": 0.8043128399638191,
+        "round": 1
+      },
+      "timestamp": "2025-06-12T12:09:17.360609"
+    },
+    "e50bf6da-bebe-4f9e-a32b-5206157f0dee": {
+      "parents": [
+        "6b38ba7a-10be-42b9-913d-845373907a67",
+        "73161956-9f6c-48c5-b72e-00d867e0b512"
+      ],
+      "evolution_method": "weight_blending",
+      "generation": 2,
+      "context": {
+        "vote_confidence": 0.8294329516121015,
+        "round": 2
+      },
+      "timestamp": "2025-06-12T12:09:17.412299"
+    },
+    "f848fc0a-957d-41bc-b8b2-226ac509e629": {
+      "parents": [
+        "78518312-daee-4d75-b421-034186d51652",
+        "77a0fab4-757b-4b00-8920-9709bccb3fbb"
+      ],
+      "evolution_method": null,
+      "generation": 1,
+      "context": {
+        "vote_confidence": 0.7816432576915807,
+        "round": 1
+      },
+      "timestamp": "2025-06-12T12:14:09.553933"
+    },
+    "c280475d-a13a-4a54-8911-b3d46beb5e09": {
+      "parents": [
+        "f848fc0a-957d-41bc-b8b2-226ac509e629",
+        "78518312-daee-4d75-b421-034186d51652"
+      ],
+      "evolution_method": "weight_blending",
+      "generation": 2,
+      "context": {
+        "vote_confidence": 0.6724900618025897,
+        "round": 2
+      },
+      "timestamp": "2025-06-12T12:14:09.692944"
+    }
+  },
+  "architecture_stats": {}
+}

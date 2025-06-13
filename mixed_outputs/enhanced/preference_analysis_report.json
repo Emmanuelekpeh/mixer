@@ -1,0 +1,284 @@
+{
+  "Al James - Schoolboy Facination.stem_ast_regressor_mixed.wav": {
+    "dynamics": {
+      "original": {
+        "rms": 0.10779819637537003,
+        "peak": 0.8885804414749146,
+        "crest_factor_db": 18.32170295715332,
+        "dynamic_range": "High"
+      },
+      "enhanced": {
+        "rms": 0.11049864441156387,
+        "peak": 0.949981689453125,
+        "crest_factor_db": 18.687164306640625,
+        "dynamic_range": "High"
+      },
+      "change": {
+        "rms_change_db": 0.2149084359407425,
+        "peak_change_db": 0.5803697109222412,
+        "crest_change_db": 0.36546066403388977
+      }
+    },
+    "frequency": {
+      "sub_bass": {
+        "original_energy": 6.27638801233843e-05,
+        "enhanced_energy": 1.215239262819523e-05,
+        "change_db": -7.13047981262207,
+        "description": "Significantly reduced"
+      },
+      "bass": {
+        "original_energy": 0.00033187580993399024,
+        "enhanced_energy": 0.0002740890486165881,
+        "change_db": -0.8308390378952026,
+        "description": "Similar"
+      },
+      "low_mid": {
+        "original_energy": 0.00024581007892265916,
+        "enhanced_energy": 0.00030494187376461923,
+        "change_db": 0.9361737370491028,
+        "description": "Similar"
+      },
+      "mid": {
+        "original_energy": 0.00030380176031030715,
+        "enhanced_energy": 0.00037960929330438375,
+        "change_db": 0.9674655199050903,
+        "description": "Similar"
+      },
+      "high_mid": {
+        "original_energy": 9.475652041146532e-05,
+        "enhanced_energy": 0.00011841808736789972,
+        "change_db": 0.9680894017219543,
+        "description": "Similar"
+      },
+      "presence": {
+        "original_energy": 3.3269803680013865e-05,
+        "enhanced_energy": 4.157757939537987e-05,
+        "change_db": 0.9680898189544678,
+        "description": "Similar"
+      },
+      "air": {
+        "original_energy": 9.343045550636463e-18,
+        "enhanced_energy": 2.5982714244032756e-12,
+        "change_db": 4.1468048095703125,
+        "description": "Significantly boosted"
+      }
+    },
+    "spectral": {
+      "brightness_change": {
+        "original_centroid_hz": 2610.918987603067,
+        "enhanced_centroid_hz": 2719.874838582252,
+        "change_percent": 4.1730843238154645,
+        "description": "Brighter"
+      },
+      "energy_distribution": {
+        "original_rolloff_hz": 5531.305522645702,
+        "enhanced_rolloff_hz": 5666.771169285471,
+        "change_percent": 2.449071852660455
+      },
+      "frequency_spread": {
+        "original_bandwidth_hz": 2653.6784047705382,
+        "enhanced_bandwidth_hz": 2667.3829651293713,
+        "change_percent": 0.5164363675039253
+      }
+    },
+    "loudness": {
+      "rms_comparison": "Enhanced is louder",
+      "peak_comparison": "Enhanced has higher peaks",
+      "overall_level_change": "0.2 dB"
+    },
+    "preference_insights": [
+      "Enhancement reduced sub bass by 7.1dB - might sound dull",
+      "Enhancement boosted air by 4.1dB - might sound unnatural"
+    ]
+  },
+  "Al James - Schoolboy Facination.stem_baseline_cnn_mixed.wav": {
+    "dynamics": {
+      "original": {
+        "rms": 0.10671409219503403,
+        "peak": 0.9046629071235657,
+        "crest_factor_db": 18.56529998779297,
+        "dynamic_range": "High"
+      },
+      "enhanced": {
+        "rms": 0.10991222411394119,
+        "peak": 0.949981689453125,
+        "crest_factor_db": 18.733383178710938,
+        "dynamic_range": "High"
+      },
+      "change": {
+        "rms_change_db": 0.25648388266563416,
+        "peak_change_db": 0.4245685338973999,
+        "crest_change_db": 0.168084979057312
+      }
+    },
+    "frequency": {
+      "sub_bass": {
+        "original_energy": 5.032778426539153e-05,
+        "enhanced_energy": 9.622717698221095e-06,
+        "change_db": -7.18510103225708,
+        "description": "Significantly reduced"
+      },
+      "bass": {
+        "original_energy": 0.0003063506446778774,
+        "enhanced_energy": 0.00025895083672367036,
+        "change_db": -0.730014979839325,
+        "description": "Similar"
+      },
+      "low_mid": {
+        "original_energy": 0.0002696191950235516,
+        "enhanced_energy": 0.0003284887643530965,
+        "change_db": 0.857697069644928,
+        "description": "Similar"
+      },
+      "mid": {
+        "original_energy": 0.00028653713525272906,
+        "enhanced_energy": 0.0003516238066367805,
+        "change_db": 0.8889734148979187,
+        "description": "Similar"
+      },
+      "high_mid": {
+        "original_energy": 0.00010322693560738117,
+        "enhanced_energy": 0.00012669499847106636,
+        "change_db": 0.8896644115447998,
+        "description": "Similar"
+      },
+      "presence": {
+        "original_energy": 3.551581175997853e-05,
+        "enhanced_energy": 4.359012746135704e-05,
+        "change_db": 0.8896639943122864,
+        "description": "Similar"
+      },
+      "air": {
+        "original_energy": 9.282316431604657e-18,
+        "enhanced_energy": 2.5944309634678975e-12,
+        "change_db": 4.140380859375,
+        "description": "Significantly boosted"
+      }
+    },
+    "spectral": {
+      "brightness_change": {
+        "original_centroid_hz": 2634.444519717878,
+        "enhanced_centroid_hz": 2731.676227024818,
+        "change_percent": 3.6907859163172962,
+        "description": "Brighter"
+      },
+      "energy_distribution": {
+        "original_rolloff_hz": 5533.380606194226,
+        "enhanced_rolloff_hz": 5650.0319956213425,
+        "change_percent": 2.1081396298048545
+      },
+      "frequency_spread": {
+        "original_bandwidth_hz": 2639.9587051749836,
+        "enhanced_bandwidth_hz": 2651.30487605151,
+        "change_percent": 0.4297859225708674
+      }
+    },
+    "loudness": {
+      "rms_comparison": "Enhanced is louder",
+      "peak_comparison": "Enhanced has higher peaks",
+      "overall_level_change": "0.3 dB"
+    },
+    "preference_insights": [
+      "Enhancement reduced sub bass by 7.2dB - might sound dull",
+      "Enhancement boosted air by 4.1dB - might sound unnatural"
+    ]
+  },
+  "Al James - Schoolboy Facination.stem_improved_baseline_cnn_mixed.wav": {
+    "dynamics": {
+      "original": {
+        "rms": 0.026331817731261253,
+        "peak": 0.22054657340049744,
+        "crest_factor_db": 18.460386276245117,
+        "dynamic_range": "High"
+      },
+      "enhanced": {
+        "rms": 0.049047257751226425,
+        "peak": 0.433074951171875,
+        "crest_factor_db": 18.918964385986328,
+        "dynamic_range": "High"
+      },
+      "change": {
+        "rms_change_db": 5.402674674987793,
+        "peak_change_db": 5.8612542152404785,
+        "crest_change_db": 0.45857757329940796
+      }
+    },
+    "frequency": {
+      "sub_bass": {
+        "original_energy": 2.959101948363241e-06,
+        "enhanced_energy": 1.8542834823165322e-06,
+        "change_db": -2.029839277267456,
+        "description": "Reduced"
+      },
+      "bass": {
+        "original_energy": 1.8162449123337865e-05,
+        "enhanced_energy": 4.978459037374705e-05,
+        "change_db": 4.379204750061035,
+        "description": "Significantly boosted"
+      },
+      "low_mid": {
+        "original_energy": 1.5751498722238466e-05,
+        "enhanced_energy": 6.25465763732791e-05,
+        "change_db": 5.988816261291504,
+        "description": "Significantly boosted"
+      },
+      "mid": {
+        "original_energy": 1.9044198779738508e-05,
+        "enhanced_energy": 7.616564107593149e-05,
+        "change_db": 6.01996374130249,
+        "description": "Significantly boosted"
+      },
+      "high_mid": {
+        "original_energy": 6.079210834286641e-06,
+        "enhanced_energy": 2.4316837880178355e-05,
+        "change_db": 6.020598411560059,
+        "description": "Significantly boosted"
+      },
+      "presence": {
+        "original_energy": 2.04518141799781e-06,
+        "enhanced_energy": 8.180722943507135e-06,
+        "change_db": 6.020596504211426,
+        "description": "Significantly boosted"
+      },
+      "air": {
+        "original_energy": 5.605540381427383e-19,
+        "enhanced_energy": 2.5972806804580584e-12,
+        "change_db": 4.145186424255371,
+        "description": "Significantly boosted"
+      }
+    },
+    "spectral": {
+      "brightness_change": {
+        "original_centroid_hz": 2598.7647329877163,
+        "enhanced_centroid_hz": 2696.8900485360914,
+        "change_percent": 3.7758445119256154,
+        "description": "Brighter"
+      },
+      "energy_distribution": {
+        "original_rolloff_hz": 5456.050989385648,
+        "enhanced_rolloff_hz": 5574.500451809411,
+        "change_percent": 2.1709742569158177
+      },
+      "frequency_spread": {
+        "original_bandwidth_hz": 2609.2851937008295,
+        "enhanced_bandwidth_hz": 2629.7501436849734,
+        "change_percent": 0.7843125018893717
+      }
+    },
+    "loudness": {
+      "rms_comparison": "Enhanced is louder",
+      "peak_comparison": "Enhanced has higher peaks",
+      "overall_level_change": "5.4 dB"
+    },
+    "preference_insights": [
+      "Enhancement reduced sub bass by 2.0dB - might sound dull",
+      "Enhancement boosted bass by 4.4dB - might sound unnatural",
+      "Enhancement boosted low mid by 6.0dB - might sound unnatural",
+      "Enhancement boosted mid by 6.0dB - might sound unnatural",
+      "Enhancement boosted high mid by 6.0dB - might sound unnatural",
+      "Enhancement boosted presence by 6.0dB - might sound unnatural",
+      "Enhancement boosted air by 4.1dB - might sound unnatural",
+      "Enhancement changed overall level by 5.4dB - level changes can affect perception"
+    ]
+  }
+}

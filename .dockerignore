@@ -1,0 +1,62 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build artifacts
+**/build/
+**/dist/
+coverage/
+
+# Development files
+.vscode/
+.idea/
+.DS_Store
+
+# Documentation
+docs/
+*.md
+LICENSE
+
+# Tests
+tests/
+test/
+**/__tests__/
+**/*.test.js
+**/*.spec.js
+
+# Large data files
+data/musdb18.zip
+**/*.wav
+**/*.mp3
+**/*.flac
+!mixed_outputs/*.wav
+
+# Temporary files
+tmp/
+temp/
+**/*.tmp
+
+# Except these important files
+!README.md
+!RAILWAY_DEPLOYMENT.md
+!requirements.txt
+!runtime.txt

@@ -1,0 +1,8 @@
+requests
+librosa
+numpy
+soundfile
+torch
+transformers
+datasets
+scikit-learn

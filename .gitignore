@@ -1,0 +1,109 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# React build
+tournament_webapp/frontend/build/
+
+# Distribution
+dist/
+build/
+
+# Testing
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+coverage/
+
+# Deployment
+.vercel
+.netlify
+railway.toml
+
+# Misc
+.DS_Store
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.log
+tmp/
+temp/
+
+# Audio files
+*.wav
+*.mp3
+*.flac
+*.aiff
+*.ogg
+
+# Uploaded files
+tournament_webapp/static/uploads/
+
+# Model checkpoints (except deployment ones)
+*.pth
+!models/deployment/*.pth
+
+# Generated reports
+mixed_outputs/*.png
+enhanced_results/*.png
+
+# IMPORTANT: Exclude data files but include README
+/data/*
+!/data/README.md
+!/data/targets_example.json
+
+# Explicitly exclude these data files by name
+data/musdb18.zip
+data/ast_pred.npy
+data/baseline_cnn_pred.npy
+data/enhanced_cnn_pred.npy
+data/targets_generated.json
+data/targets_augmented.json
+
+# Explicitly exclude these data directories
+data/ast_features/
+data/spectrograms/
+data/spectrograms_augmented/
+data/test/
+data/train/
+data/train_augmented/
+data/val/
+
+# Large binary files
+*.npy
+*.npz
+*.h5
+*.hdf5
+*.pkl
+*.pickle

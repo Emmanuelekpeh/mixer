@@ -1,0 +1,30 @@
+{
+  "name": "ai-mixer-tournament",
+  "version": "1.0.0",
+  "description": "AI Mixer Tournament - A platform for AI mixing models to compete and evolve",
+  "main": "tournament_webapp/dev_server.py",
+  "scripts": {
+    "start": "python tournament_webapp/dev_server.py --production",
+    "dev": "python tournament_webapp/dev_server.py",
+    "backend": "python tournament_webapp/dev_server.py --backend-only",
+    "frontend": "python tournament_webapp/dev_server.py --frontend-only",
+    "build": "cd tournament_webapp/frontend && npm install && npm run build"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "your-repo-url"
+  },
+  "keywords": [
+    "ai",
+    "music",
+    "mixer",
+    "tournament",
+    "machine-learning"
+  ],
+  "author": "",
+  "license": "MIT"
+}
