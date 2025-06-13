@@ -30,8 +30,14 @@ import logging
 from datetime import datetime
 from dotenv import load_dotenv
 
+# Add the parent directory to the Python path
+current_dir = Path(__file__).parent
+parent_dir = current_dir.parent.parent
+if str(parent_dir) not in sys.path:
+    sys.path.append(str(parent_dir))
+
 # Import tournament engine
-from enhanced_tournament_engine import EnhancedTournamentEngine
+from tournament_webapp.backend.enhanced_tournament_engine import EnhancedTournamentEngine
 
 # Load environment variables from .env file
 load_dotenv()

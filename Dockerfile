@@ -15,6 +15,9 @@ RUN ls -la tournament_webapp
 RUN ls -la tournament_webapp/frontend || echo "Frontend directory not found"
 RUN ls -la tournament_webapp/backend || echo "Backend directory not found"
 
+# Set Python path to include the app directory
+ENV PYTHONPATH="${PYTHONPATH}:/app"
+
 # Expose the port the app will run on
 EXPOSE $PORT
 
