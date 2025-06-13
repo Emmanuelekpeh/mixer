@@ -251,13 +251,12 @@ class TournamentDevServer:
             sys.exit(1)
         
         print("✅ All dependencies available")
-    
-    def run_production_server(self):
+      def run_production_server(self):
         """Run production server"""
         print("🚀 Starting production server...")
         
         # Build frontend
-        frontend_dir = Path(__file__).parent / "tournament_webapp" / "frontend"
+        frontend_dir = Path(__file__).parent / "frontend"
         print("📦 Building frontend for production...")
         
         build_result = subprocess.run(
@@ -274,7 +273,7 @@ class TournamentDevServer:
         print("✅ Frontend built successfully")
         
         # Start production backend
-        backend_dir = Path(__file__).parent / "tournament_webapp" / "backend"
+        backend_dir = Path(__file__).parent / "backend"
         os.chdir(backend_dir)
         
         # Start with gunicorn for production
