@@ -30,6 +30,9 @@ import logging
 from datetime import datetime
 from dotenv import load_dotenv
 
+# Import tournament engine
+from enhanced_tournament_engine import EnhancedTournamentEngine
+
 # Load environment variables from .env file
 load_dotenv()
 
