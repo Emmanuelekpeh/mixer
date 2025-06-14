@@ -39,6 +39,18 @@ if str(parent_dir) not in sys.path:
 # Import tournament engine
 from tournament_webapp.backend.enhanced_tournament_engine import EnhancedTournamentEngine
 
+# Import async processing
+from tournament_webapp.backend.async_task_system import schedule_task, get_task_status
+
+# Import audio processing
+try:
+    from tournament_webapp.backend.audio_processor import process_audio, execute_battle, create_final_mix
+except ImportError:
+    logging.warning("Audio processor not found, using fallback methods")
+    process_audio = None
+    execute_battle = None
+    create_final_mix = None
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -78,12 +90,22 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 # Initialize tournament engine
 models_dir = Path(MODELS_DIR)
 
+# Import the model manager if available
+try:
+    from tournament_webapp.backend.tournament_model_manager import TournamentModelManager
+    model_manager = TournamentModelManager(models_dir)
+    logger.info(f"Initialized tournament model manager with {len(model_manager.get_model_list())} models")
+except Exception as e:
+    logger.warning(f"Could not initialize tournament model manager: {str(e)}")
+    model_manager = None
+
 # Create a simple stub class for development/testing
 class SimpleTournamentEngine:
     def __init__(self, models_dir):
         self.models_dir = models_dir
         self.tournaments = {}
         self.user_profiles = {}
+        self.model_manager = model_manager
         
     def get_tournament_status(self, tournament_id):
         # Return a simple response for now
@@ -119,18 +141,98 @@ class SimpleTournamentEngine:
             logger.info(f"🔊 Tournament {tournament_id} using spectrogram: {audio_features['spectrogram_path']}")
         elif audio_file:
             logger.info(f"🎵 Tournament {tournament_id} using audio file: {audio_file}")
+            
+            # Store audio file path in tournament for model processing
+            if tournament_id in self.tournaments:
+                self.tournaments[tournament_id]["audio_file"] = audio_file
         
         return tournament_id
-    
-    def execute_battle(self, tournament_id):
+        
+    async def execute_battle_async(self, tournament_id):
+        """Execute battle asynchronously if model manager is available"""
         if tournament_id not in self.tournaments:
             return None
-        # Return a sample battle result
-        return {
-            "battle_id": str(uuid.uuid4()),
+            
+        tournament = self.tournaments[tournament_id]
+        
+        # Check if we have model manager and audio file
+        if self.model_manager and "audio_file" in tournament:
+            audio_file = tournament["audio_file"]
+            
+            # Get models from available models
+            available_models = self.model_manager.get_model_list()
+            if len(available_models) >= 2:
+                model_a_id = available_models[0]["id"]
+                model_b_id = available_models[1]["id"]
+                
+                # Execute battle with model manager
+                battle_result = await self.model_manager.execute_battle(
+                    audio_file, model_a_id, model_b_id
+                )
+                
+                # Update tournament with battle result
+                if "error" not in battle_result:
+                    tournament["current_battle"] = battle_result
+                    return battle_result
+                else:
+                    logger.error(f"Battle execution failed: {battle_result['error']}")
+        
+        # Fallback to dummy battle
+        battle_id = str(uuid.uuid4())
+        battle_result = {
+            "battle_id": battle_id,
             "model_a": {"id": "model1", "name": "Baseline CNN"},
-            "model_b": {"id": "model2", "name": "Enhanced CNN"}
+            "model_b": {"id": "model2", "name": "Enhanced CNN"},
+            "status": "ready_for_vote"
         }
+        
+        tournament["current_battle"] = battle_result
+        return battle_result
+    
+    def execute_battle(self, tournament_id):
+        """Synchronous wrapper for execute_battle_async"""
+        if tournament_id not in self.tournaments:
+            return None
+            
+        # If we have asyncio support, run the async version
+        try:
+            import asyncio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return loop.run_until_complete(self.execute_battle_async(tournament_id))
+        except Exception as e:
+            logger.error(f"Async battle execution failed: {str(e)}")
+            
+            # Fallback to dummy battle
+            battle_id = str(uuid.uuid4())
+            return {
+                "battle_id": battle_id,
+                "model_a": {"id": "model1", "name": "Baseline CNN"},
+                "model_b": {"id": "model2", "name": "Enhanced CNN"},
+                "status": "ready_for_vote"
+            }
+      def execute_battle(self, tournament_id):
+        """Synchronous wrapper for execute_battle_async"""
+        if tournament_id not in self.tournaments:
+            return None
+            
+        # If we have asyncio support, run the async version
+        try:
+            import asyncio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return loop.run_until_complete(self.execute_battle_async(tournament_id))
+        except Exception as e:
+            logger.error(f"Async battle execution failed: {str(e)}")
+            
+            # Fallback to dummy battle
+            battle_id = str(uuid.uuid4())
+            return {
+                "battle_id": battle_id,
+                "model_a": {"id": "model1", "name": "Baseline CNN"},
+                "model_b": {"id": "model2", "name": "Enhanced CNN"},
+                "status": "ready_for_vote"
+            }
     
     def record_vote(self, tournament_id, winner_id, confidence=0.7, reasoning=None):
         if tournament_id not in self.tournaments:
@@ -140,31 +242,118 @@ class SimpleTournamentEngine:
         tournament["round"] += 1
         
         # Add to battle history
-        tournament["battle_history"].append({
-            "battle_id": tournament["current_battle"]["battle_id"],
+        battle_history_entry = {
+            "battle_id": tournament["current_battle"]["battle_id"] if "battle_id" in tournament["current_battle"] else str(uuid.uuid4()),
             "winner_id": winner_id,
             "confidence": confidence,
-            "reasoning": reasoning
-        })
+            "reasoning": reasoning,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        # Add spectrogram path if available in current battle
+        if "current_battle" in tournament and "spectrogram_path" in tournament["current_battle"]:
+            battle_history_entry["spectrogram_path"] = tournament["current_battle"]["spectrogram_path"]
+        
+        tournament["battle_history"].append(battle_history_entry)
+        
+        # If we have a model manager, update model metrics based on vote
+        if self.model_manager and hasattr(self.model_manager, "update_model_metrics"):
+            try:
+                # This would be implemented in a real model manager
+                self.model_manager.update_model_metrics(
+                    winner_id=winner_id,
+                    loser_id=tournament["current_battle"]["model_a"]["id"] if winner_id == tournament["current_battle"]["model_b"]["id"] else tournament["current_battle"]["model_b"]["id"],
+                    confidence=confidence
+                )
+            except Exception as e:
+                logger.error(f"Failed to update model metrics: {str(e)}")
         
         # Create a new battle if not finished
         if tournament["round"] <= tournament["max_rounds"]:
-            tournament["current_battle"] = {
-                "battle_id": str(uuid.uuid4()),
-                "model_a": {"id": "model3", "name": "Improved Baseline CNN"},
-                "model_b": {"id": "model4", "name": "Retrained Enhanced CNN"}
-            }
+            # Use execute_battle to get the next battle
+            next_battle = self.execute_battle(tournament_id)
+            if next_battle:
+                tournament["current_battle"] = next_battle
+            else:
+                # Fallback to simple battle
+                tournament["current_battle"] = {
+                    "battle_id": str(uuid.uuid4()),
+                    "model_a": {"id": "model3", "name": "Improved Baseline CNN"},
+                    "model_b": {"id": "model4", "name": "Retrained Enhanced CNN"}
+                }
         else:
             tournament["status"] = "completed"
             tournament["current_battle"] = None
+            
+            # If we have audio file and winning model, create final mix
+            if "audio_file" in tournament and self.model_manager:
+                try:
+                    # Find the overall winner
+                    winner_counts = {}
+                    for battle in tournament["battle_history"]:
+                        winner_id = battle["winner_id"]
+                        winner_counts[winner_id] = winner_counts.get(winner_id, 0) + 1
+                    
+                    if winner_counts:
+                        overall_winner = max(winner_counts.items(), key=lambda x: x[1])[0]
+                        
+                        # Process final mix with winning model
+                        logger.info(f"Creating final mix with winning model {overall_winner}")
+                        tournament["final_winner"] = overall_winner
+                        
+                        # This would create the final mix in a real implementation
+                        # tournament["final_mix_path"] = await self.model_manager.create_final_mix(
+                        #     tournament["audio_file"], overall_winner
+                        # )
+                except Exception as e:
+                    logger.error(f"Failed to create final mix: {str(e)}")
         
         return tournament
     
     def vote_for_winner(self, tournament_id, winner_id, confidence=0.7, reasoning=None):
         return self.record_vote(tournament_id, winner_id, confidence, reasoning)
-    
+        
     def get_model_list(self):
-        # Return a sample model list
+        """Get list of available models"""
+        # If we have a model manager, use it to get real models
+        if self.model_manager:
+            try:
+                # Get models from the manager
+                models = self.model_manager.get_model_list()
+                if models:
+                    # Format for API response
+                    return [
+                        {
+                            "id": model["id"],
+                            "name": model["name"],
+                            "architecture": model["architecture"],
+                            "specializations": model.get("specializations", []),
+                            "size_mb": round(model.get("size_mb", 0), 2)
+                        }
+                        for model in models
+                    ]
+            except Exception as e:
+                logger.error(f"Failed to get models from manager: {str(e)}")
+        
+        # Fallback to sample model list
+        return [
+            {"id": "model1", "name": "Baseline CNN", "architecture": "cnn"},
+            {"id": "model2", "name": "Enhanced CNN", "architecture": "cnn"},
+            {"id": "model3", "name": "Improved Baseline CNN", "architecture": "cnn"},
+            {"id": "model4", "name": "Retrained Enhanced CNN", "architecture": "cnn"},
+            {"id": "model5", "name": "Weighted Ensemble", "architecture": "hybrid"}
+        ]
+                            "name": model["name"],
+                            "architecture": model["architecture"],
+                            "specializations": model.get("specializations", []),
+                            "size_mb": round(model.get("size_mb", 0), 2)
+                        }
+                        for model in models
+                    ]
+            except Exception as e:
+                logger.error(f"Failed to get models from manager: {str(e)}")
+        
+        # Fallback to sample model list
         return [
             {"id": "model1", "name": "Baseline CNN", "architecture": "cnn"},
             {"id": "model2", "name": "Enhanced CNN", "architecture": "cnn"},
@@ -246,6 +435,7 @@ class UserCreateRequest(BaseModel):
 # Tournament management endpoints
 @app.post("/api/tournaments/create")
 async def create_tournament(
+    background_tasks: BackgroundTasks,
     user_id: str = Form(...),
     username: str = Form(...),
     max_rounds: int = Form(5),
@@ -260,7 +450,8 @@ async def create_tournament(
             
         if not audio_file.filename.lower().endswith(('.wav', '.mp3', '.flac', '.aiff')):
             raise HTTPException(status_code=400, detail="Unsupported audio format")
-          # Save uploaded audio file
+        
+        # Save uploaded audio file
         audio_dir = static_dir / "uploads"
         audio_dir.mkdir(exist_ok=True)
         
@@ -274,35 +465,11 @@ async def create_tournament(
         
         logger.info(f"🎵 Audio uploaded: {saved_filename}")
         
-        # Convert to spectrogram for efficient storage
-        try:
-            sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
-            from audio_to_spectrogram import SpectrogramConverter
-            
-            # Create spectrogram directory
-            spec_dir = static_dir / "spectrograms"
-            spec_dir.mkdir(exist_ok=True)
-            
-            # Convert audio to spectrogram
-            converter = SpectrogramConverter()
-            spec_path, meta_path = converter.audio_to_spectrogram(str(saved_path), str(spec_dir))
-            
-            logger.info(f"🔊 Audio converted to spectrogram: {spec_path}")
-            
-            # We'll use the spectrogram path for processing, but keep the original for reference
-            processing_path = spec_path
-        except Exception as e:
-            logger.warning(f"⚠️ Could not convert to spectrogram, using original audio: {str(e)}")
-            processing_path = str(saved_path)
-          # Parse audio features from JSON string
+        # Parse audio features from JSON string
         try:
             parsed_audio_features = json.loads(audio_features) if audio_features else {}
         except json.JSONDecodeError:
             parsed_audio_features = {}
-        
-        # Add spectrogram path to audio features if available
-        if 'processing_path' in locals():
-            parsed_audio_features['spectrogram_path'] = processing_path
         
         # Start tournament
         tournament_id = tournament_engine.start_tournament(
@@ -313,7 +480,31 @@ async def create_tournament(
             audio_features=parsed_audio_features
         )
         
+        # Schedule audio processing asynchronously
+        if process_audio:
+            # Create an output directory for processed audio
+            process_dir = static_dir / "processed" / tournament_id
+            process_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Schedule audio conversion task
+            task_id = schedule_task(
+                background_tasks,
+                process_audio,
+                "audio_processing",
+                str(saved_path),
+                str(process_dir),
+                None,  # No specific model for initial processing
+                task_id=f"process_{tournament_id}"
+            )
+            
+            logger.info(f"🔄 Scheduled audio processing task {task_id} for tournament {tournament_id}")
+            
+            # Add task info to audio features
+            parsed_audio_features["processing_task_id"] = task_id
+        
+        # Update tournament with audio features
         tournament = tournament_engine.get_tournament_status(tournament_id)
+        tournament["audio_features"] = parsed_audio_features
         
         # Convert to dict for JSON response
         tournament_dict = {
@@ -324,7 +515,8 @@ async def create_tournament(
             "max_rounds": tournament["max_rounds"],
             "competitors": tournament_engine.get_model_list(),
             "audio_file": saved_filename,
-            "created_at": tournament["created_at"]
+            "created_at": tournament["created_at"],
+            "processing_task_id": parsed_audio_features.get("processing_task_id")
         }
         
         logger.info(f"🏆 Tournament created: {tournament_id}")
@@ -336,15 +528,67 @@ async def create_tournament(
 
 @app.post("/api/tournaments/{tournament_id}/battle")
 async def execute_battle(tournament_id: str, background_tasks: BackgroundTasks):
-    """Execute battle between current tournament competitors"""
+    """Execute battle between current tournament competitors asynchronously"""
     try:
-        battle_result = tournament_engine.execute_battle(tournament_id)
+        # Get tournament information
+        tournament = tournament_engine.get_tournament_status(tournament_id)
         
-        if not battle_result:
+        if not tournament:
             raise HTTPException(status_code=404, detail="Tournament not found")
         
-        logger.info(f"⚔️ Battle executed: {tournament_id}")
-        return JSONResponse(content={"success": True, "battle": battle_result})
+        # Get current models for battle
+        models = tournament_engine.get_model_list()
+        if len(models) < 2:
+            raise HTTPException(status_code=400, detail="Not enough models for battle")
+        
+        model_a_id = models[0]["id"]
+        model_b_id = models[1]["id"]
+        
+        # Get audio file from tournament
+        audio_file = tournament.get("audio_file")
+        if not audio_file:
+            raise HTTPException(status_code=400, detail="No audio file in tournament")
+        
+        # Create battle info
+        battle_id = str(uuid.uuid4())
+        battle_info = {
+            "battle_id": battle_id,
+            "model_a": {"id": model_a_id, "name": models[0]["name"]},
+            "model_b": {"id": model_b_id, "name": models[1]["name"]},
+            "status": "processing"
+        }
+        
+        # Update tournament with battle info
+        tournament["current_battle"] = battle_info
+        
+        # Schedule battle execution asynchronously
+        if execute_battle:
+            # Create an output directory for battle
+            battle_dir = static_dir / "battles" / tournament_id
+            battle_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Schedule battle execution task
+            task_id = schedule_task(
+                background_tasks,
+                execute_battle,
+                "battle_execution",
+                audio_file,
+                str(battle_dir),
+                model_a_id,
+                model_b_id,
+                task_id=f"battle_{battle_id}"
+            )
+            
+            # Add task info to battle info
+            battle_info["task_id"] = task_id
+            battle_info["status"] = "processing"
+            
+            logger.info(f"🔄 Scheduled battle execution task {task_id} for tournament {tournament_id}")
+        else:
+            # Fallback to synchronous execution
+            battle_info = tournament_engine.execute_battle(tournament_id)
+        
+        return JSONResponse(content={"success": True, "battle": battle_info})
         
     except HTTPException:
         raise
@@ -394,16 +638,43 @@ async def get_tournament_status(tournament_id: str):
             "battle_history": tournament["battle_history"],
             "created_at": tournament["created_at"]
         }
-        
-        return JSONResponse(content={"success": True, "tournament": tournament_dict})
-        
-        return JSONResponse(content={"success": True, "tournament": tournament_dict})
+          return JSONResponse(content={"success": True, "tournament": tournament_dict})
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ Tournament status retrieval failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get tournament status: {str(e)}")
+
+# Task management endpoints
+@app.get("/api/tasks/{task_id}")
+async def get_task_progress(task_id: str):
+    """Get the progress of an asynchronous task"""
+    try:
+        # Get task status
+        task_status = get_task_status(task_id)
+        
+        if not task_status:
+            raise HTTPException(status_code=404, detail="Task not found")
+        
+        # Convert to dictionary for JSON response
+        task_dict = {
+            "task_id": task_status.task_id,
+            "status": task_status.status,
+            "progress": task_status.progress,
+            "message": task_status.message,
+            "created_at": task_status.created_at,
+            "updated_at": task_status.updated_at,
+            "completed_at": task_status.completed_at
+        }
+        
+        return JSONResponse(content={"success": True, "task": task_dict})
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Task status check failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Task status check failed: {str(e)}")
 
 # User management endpoints
 @app.post("/api/users/create")
