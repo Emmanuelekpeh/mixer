@@ -1,19 +1,37 @@
+FROM python:3.10-slim AS builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better layer caching
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# Create a clean production image with only runtime dependencies
 FROM python:3.10-slim
 
 WORKDIR /app
 
-# Copy requirements first for better layer caching
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy installed packages from builder
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local/bin:$PATH
 
-# Copy the rest of the application
+# Copy the application code
 COPY . .
 
-# Debug directory structure
-RUN ls -la
-RUN ls -la tournament_webapp
-RUN ls -la tournament_webapp/frontend || echo "Frontend directory not found"
-RUN ls -la tournament_webapp/backend || echo "Backend directory not found"
+# Create non-root user for security
+RUN useradd -m appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+# Create necessary directories and set permissions
+RUN mkdir -p /app/logs /app/data/mixed_outputs /app/tournament_webapp/uploads && \
+    chmod -R 755 /app/logs /app/data/mixed_outputs /app/tournament_webapp/uploads
 
 # Set Python path to include the app directory
 ENV PYTHONPATH="${PYTHONPATH}:/app"
@@ -23,8 +41,17 @@ EXPOSE $PORT
 
 # Set environment variables
 ENV PRODUCTION=true
-ENV MODELS_DIR=../models/deployment
+ENV MODELS_DIR=/app/models/deployment
 ENV ALLOWED_ORIGINS=https://ai-mixer-tournament.onrender.com,http://localhost:3000
+ENV LOG_LEVEL=INFO
+ENV WORKERS=4
 
-# Simple direct command that skips the dev_server.py script
-CMD cd tournament_webapp/backend && uvicorn tournament_api:app --host 0.0.0.0 --port $PORT
+# Configure Gunicorn for production
+CMD cd tournament_webapp/backend && \
+    gunicorn tournament_api:app \
+    --workers $WORKERS \
+    --worker-class uvicorn.workers.UvicornWorker \
+    --bind 0.0.0.0:$PORT \
+    --access-logfile - \
+    --error-logfile - \
+    --timeout 120

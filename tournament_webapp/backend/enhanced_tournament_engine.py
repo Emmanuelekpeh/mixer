@@ -30,6 +30,9 @@ from datetime import datetime, timedelta
 from enum import Enum
 import logging
 
+# Import TournamentEngine for inheritance
+from tournament_webapp.backend.tournament_engine import TournamentEngine, TournamentState
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -576,17 +579,18 @@ class AdvancedModelEvolution:
         stats["by_architecture"][evolved.architecture.value] = stats["by_architecture"].get(evolved.architecture.value, 0) + 1
         
         # Save genealogy
-        genealogy_file = Path("tournament_webapp/tournament_models/genealogy.json")
-        genealogy_file.parent.mkdir(parents=True, exist_ok=True)
+        genealogy_file = Path("tournament_webapp/tournament_models/genealogy.json")        genealogy_file.parent.mkdir(parents=True, exist_ok=True)
         with open(genealogy_file, 'w') as f:
             json.dump(self.genealogy, f, indent=2)
 
-class EnhancedTournamentEngine:
+class EnhancedTournamentEngine(TournamentEngine):
     """Production-grade tournament engine with gamification"""
     
     def __init__(self, models_dir: Path):
+        super().__init__(models_dir)
         self.evolution_engine = AdvancedModelEvolution(models_dir)
-        self.active_tournaments: Dict[str, TournamentState] = {}
+        
+        # Additional attributes for enhanced features
         self.user_profiles: Dict[str, UserProfile] = {}
         
         # Tournament analytics

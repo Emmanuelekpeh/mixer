@@ -78,38 +78,26 @@ tournament_webapp/static/uploads/
 mixed_outputs/*.png
 enhanced_results/*.png
 
-# IMPORTANT: Exclude data files but include README and .gitkeep
+# IMPORTANT: Exclude data files but include README
 /data/*
 !/data/README.md
 !/data/targets_example.json
-!/**/.gitkeep
-
-# Ensure directories are tracked but contents ignored
-!/data/raw/
-/data/raw/*
-!/data/raw/.gitkeep
-
-!/data/train/
-/data/train/*
-!/data/train/.gitkeep
-
-!/data/test/
-/data/test/*
-!/data/test/.gitkeep
-
-!/data/spectrograms/
-/data/spectrograms/*
-!/data/spectrograms/.gitkeep
 
 # Explicitly exclude these data files by name
-data/*.zip
-data/*.npy
-data/targets_generated.json
-data/targets_augmented.json
 data/musdb18.zip
 data/ast_pred.npy
 data/baseline_cnn_pred.npy
 data/enhanced_cnn_pred.npy
+data/targets_generated.json
+data/targets_augmented.json
+
+# Explicitly exclude these data directories
+data/ast_features/
+data/spectrograms/
+data/spectrograms_augmented/
+data/test/
+data/train/
+data/train_augmented/
 data/val/
 
 # Large binary files
