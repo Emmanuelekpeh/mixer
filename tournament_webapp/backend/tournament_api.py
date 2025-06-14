@@ -36,6 +36,34 @@ parent_dir = current_dir.parent.parent
 if str(parent_dir) not in sys.path:
     sys.path.append(str(parent_dir))
 
+# Import error handling if available
+try:
+    from src.error_handling import (
+        log_structured,
+        performance_monitor,
+        async_performance_monitor,
+        track_error,
+        track_performance
+    )
+    error_handling_available = True
+except ImportError:
+    error_handling_available = False
+    # Fallback functions
+    def log_structured(level, message, context=None, exception=None, **kwargs):
+        logger.log(getattr(logging, level.upper()), message)
+    
+    def performance_monitor(func):
+        return func
+    
+    def async_performance_monitor(func):
+        return func
+    
+    def track_error(exception):
+        logger.error(f"Error: {str(exception)}", exc_info=True)
+    
+    def track_performance(name, duration, metadata=None):
+        logger.debug(f"Performance: {name} took {duration:.4f}s")
+
 # Import tournament engine
 from tournament_webapp.backend.enhanced_tournament_engine import EnhancedTournamentEngine
 
@@ -434,6 +462,7 @@ class UserCreateRequest(BaseModel):
 
 # Tournament management endpoints
 @app.post("/api/tournaments/create")
+@async_performance_monitor
 async def create_tournament(
     background_tasks: BackgroundTasks,
     user_id: str = Form(...),
@@ -527,6 +556,7 @@ async def create_tournament(
         raise HTTPException(status_code=500, detail=f"Tournament creation failed: {str(e)}")
 
 @app.post("/api/tournaments/{tournament_id}/battle")
+@async_performance_monitor
 async def execute_battle(tournament_id: str, background_tasks: BackgroundTasks):
     """Execute battle between current tournament competitors asynchronously"""
     try:
@@ -648,6 +678,7 @@ async def get_tournament_status(tournament_id: str):
 
 # Task management endpoints
 @app.get("/api/tasks/{task_id}")
+@async_performance_monitor
 async def get_task_progress(task_id: str):
     """Get the progress of an asynchronous task"""
     try:
