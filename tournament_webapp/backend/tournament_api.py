@@ -106,12 +106,21 @@ class SimpleTournamentEngine:
                 "battle_id": str(uuid.uuid4()),
                 "model_a": {"id": "model1", "name": "Baseline CNN"},
                 "model_b": {"id": "model2", "name": "Enhanced CNN"}
-            }
+            },
+            "audio_features": audio_features or {}
         }
         return tournament_id
     
     def start_tournament(self, user_id, username, audio_file=None, max_rounds=5, audio_features=None):
-        return self.create_tournament(user_id, username, max_rounds, audio_features)
+        tournament_id = self.create_tournament(user_id, username, max_rounds, audio_features)
+        
+        # Log whether we're using spectrogram
+        if audio_features and "spectrogram_path" in audio_features:
+            logger.info(f"🔊 Tournament {tournament_id} using spectrogram: {audio_features['spectrogram_path']}")
+        elif audio_file:
+            logger.info(f"🎵 Tournament {tournament_id} using audio file: {audio_file}")
+        
+        return tournament_id
     
     def execute_battle(self, tournament_id):
         if tournament_id not in self.tournaments:
@@ -251,8 +260,7 @@ async def create_tournament(
             
         if not audio_file.filename.lower().endswith(('.wav', '.mp3', '.flac', '.aiff')):
             raise HTTPException(status_code=400, detail="Unsupported audio format")
-        
-        # Save uploaded audio file
+          # Save uploaded audio file
         audio_dir = static_dir / "uploads"
         audio_dir.mkdir(exist_ok=True)
         
@@ -266,11 +274,35 @@ async def create_tournament(
         
         logger.info(f"🎵 Audio uploaded: {saved_filename}")
         
-        # Parse audio features from JSON string
+        # Convert to spectrogram for efficient storage
+        try:
+            sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
+            from audio_to_spectrogram import SpectrogramConverter
+            
+            # Create spectrogram directory
+            spec_dir = static_dir / "spectrograms"
+            spec_dir.mkdir(exist_ok=True)
+            
+            # Convert audio to spectrogram
+            converter = SpectrogramConverter()
+            spec_path, meta_path = converter.audio_to_spectrogram(str(saved_path), str(spec_dir))
+            
+            logger.info(f"🔊 Audio converted to spectrogram: {spec_path}")
+            
+            # We'll use the spectrogram path for processing, but keep the original for reference
+            processing_path = spec_path
+        except Exception as e:
+            logger.warning(f"⚠️ Could not convert to spectrogram, using original audio: {str(e)}")
+            processing_path = str(saved_path)
+          # Parse audio features from JSON string
         try:
             parsed_audio_features = json.loads(audio_features) if audio_features else {}
         except json.JSONDecodeError:
             parsed_audio_features = {}
+        
+        # Add spectrogram path to audio features if available
+        if 'processing_path' in locals():
+            parsed_audio_features['spectrogram_path'] = processing_path
         
         # Start tournament
         tournament_id = tournament_engine.start_tournament(
