@@ -29,7 +29,7 @@ warnings.filterwarnings('ignore')
 
 # Import our models
 from baseline_cnn import BaselineCNN, EnhancedCNN, SpectrogramDataset, N_OUTPUTS, N_CONV_LAYERS, DROPOUT, DEVICE
-from improved_models_fixed import ImprovedEnhancedCNN
+from improved_models import ImprovedEnhancedCNN
 from ensemble_training import WeightedEnsemble
 from ast_regressor import ASTRegressor, ASTFeatureDataset
 
@@ -317,46 +317,42 @@ class ComprehensiveAudioMixer:
             compressed = np.sign(channel) * (threshold + (np.abs(channel) - threshold) * (1 - ratio))
             audio[i] = np.where(above_threshold, compressed, channel)
         return audio
-    
-    def _apply_eq(self, audio, sr, low_boost, mid_boost, high_boost):
+      def _apply_eq(self, audio, sr, low_boost, mid_boost, high_boost):
         """Apply 3-band EQ using biquad filters."""
         # Low shelf (100 Hz)
         if abs(low_boost - 0.5) > 0.1:
             gain_db = (low_boost - 0.5) * 12  # ±6dB
-            b, a = signal.iirfilter(2, 100, btype='lowpass', fs=sr)
+            sos = signal.butter(2, 100, btype='lowpass', fs=sr, output='sos')
             for i in range(audio.shape[0]):
                 if gain_db > 0:
-                    filtered = signal.filtfilt(b, a, audio[i])
+                    filtered = signal.sosfilt(sos, audio[i])
                     audio[i] = audio[i] + gain_db/12 * filtered
         
         # Mid peak (1000 Hz)
-        if abs(mid_boost - 0.5) > 0.1:
-            gain_db = (mid_boost - 0.5) * 12
-            b, a = signal.iirfilter(2, [800, 1200], btype='bandpass', fs=sr)
+        if abs(mid_boost - 0.5) > 0.1:            gain_db = (mid_boost - 0.5) * 12
+            sos = signal.butter(2, [800, 1200], btype='bandpass', fs=sr, output='sos')
             for i in range(audio.shape[0]):
-                filtered = signal.filtfilt(b, a, audio[i])
+                filtered = signal.sosfilt(sos, audio[i])
                 audio[i] = audio[i] + gain_db/12 * filtered
         
         # High shelf (8000 Hz)
-        if abs(high_boost - 0.5) > 0.1:
-            gain_db = (high_boost - 0.5) * 12
-            b, a = signal.iirfilter(2, 8000, btype='highpass', fs=sr)
+        if abs(high_boost - 0.5) > 0.1:            gain_db = (high_boost - 0.5) * 12
+            sos = signal.butter(2, 8000, btype='highpass', fs=sr, output='sos')
             for i in range(audio.shape[0]):
                 if gain_db > 0:
-                    filtered = signal.filtfilt(b, a, audio[i])
+                    filtered = signal.sosfilt(sos, audio[i])
                     audio[i] = audio[i] + gain_db/12 * filtered
-        
-        return audio
+          return audio
     
     def _apply_presence(self, audio, sr, presence):
         """Apply high-frequency presence boost."""
         gain_db = presence * 6  # 0-6dB boost around 12kHz
         nyquist = sr // 2
         freq = min(12000, nyquist * 0.9)
-        b, a = signal.iirfilter(2, freq, btype='highpass', fs=sr)
+        sos = signal.butter(2, freq, btype='highpass', fs=sr, output='sos')
         
         for i in range(audio.shape[0]):
-            filtered = signal.filtfilt(b, a, audio[i])
+            filtered = signal.sosfilt(sos, audio[i])
             audio[i] = audio[i] + (gain_db/12) * filtered
         
         return audio

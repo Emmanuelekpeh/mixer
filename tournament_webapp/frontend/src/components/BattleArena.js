@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiPlay, FiPause, FiZap } from 'react-icons/fi';
+import { FiZap, FiDownload } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import Confetti from 'react-confetti';
+import { Card, Button, PageTransition } from './ui';
+import BattleAudioPlayer from './BattleAudioPlayer';
 
 const ArenaContainer = styled(motion.div)`
   max-width: 1200px;
@@ -30,20 +32,61 @@ const RoundInfo = styled.div`
 `;
 
 const RoundBadge = styled.div`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(to bottom, #a20000, #8B0000, #580000);
   color: white;
-  padding: 8px 20px;
-  border-radius: 20px;
+  padding: 8px 20px;  border-radius: 4px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  font-family: var(--font-subtitle);
+  letter-spacing: 1px;
+  border: 1px solid #222;
+  box-shadow: 
+    inset 0 1px 0 rgba(255,255,255,0.1),
+    0 2px 4px rgba(0,0,0,0.3);
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.1'/%3E%3C/svg%3E");
+    opacity: 0.15;
+    pointer-events: none;
+  }
 `;
 
 const ProgressBar = styled.div`
   width: 200px;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
+  height: 12px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 2px;
   overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgba(0,0,0,0.2),
+      rgba(0,0,0,0.2) 5px,
+      rgba(0,0,0,0) 5px,
+      rgba(0,0,0,0) 10px
+    );
+    pointer-events: none;
+  }
   
   @media (max-width: 768px) {
     width: 150px;
@@ -52,8 +95,20 @@ const ProgressBar = styled.div`
 
 const ProgressFill = styled(motion.div)`
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  border-radius: 4px;
+  background: linear-gradient(90deg, #8B0000, #a20000);
+  box-shadow: 0 0 10px rgba(139, 0, 0, 0.7);
+  border-radius: 0;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: rgba(255, 255, 255, 0.1);
+  }
 `;
 
 const BattleArea = styled(motion.div)`
@@ -66,6 +121,93 @@ const BattleArea = styled(motion.div)`
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+`;
+
+const VSCircle = styled(motion.div)`
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a20000 0%, #8B0000 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: white;
+  box-shadow: 
+    0 0 20px rgba(139, 0, 0, 0.5),
+    inset 0 0 10px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: 5;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: radial-gradient(circle, rgba(139, 0, 0, 0.4) 0%, rgba(139, 0, 0, 0) 70%);
+    z-index: -1;
+    border-radius: 50%;
+  }
+  
+  @media (max-width: 768px) {
+    margin: 20px auto;
+  }
+`;
+
+const EnhancedModelCard = styled(Card)`
+  text-align: center;
+  cursor: ${props => props.canVote ? 'pointer' : 'default'};
+  border: ${props => props.isWinner 
+    ? '3px solid #4CAF50' 
+    : props.isSelected 
+      ? '3px solid #667eea' 
+      : '1px solid var(--glass-border)'};
+  
+  ${props => props.isWinner && `
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+  `}
+  
+  ${props => props.canVote && `
+    &:hover {
+      transform: translateY(-5px);
+      border-color: #667eea;
+    }
+  `}
+`;
+
+// Replace the old PlayButton with our enhanced version
+const PlayButton = styled(Button)`
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 15px auto;
+  font-size: 1.2rem;
+  
+  svg {
+    margin: 0;
+  }
+`;
+
+// Replace the old VoteButton with our enhanced version
+const VoteButton = styled(Button)`
+  width: 100%;
+  margin-top: 30px;
+  font-size: 1.2rem;
+  padding: 15px 0;
+  font-weight: 600;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 `;
 
@@ -145,30 +287,9 @@ const Stat = styled.div`
   }
 `;
 
-const AudioPlayer = styled.div`
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
-  padding: 15px;
+const ModelAudioPlayer = styled.div`
   margin-top: 15px;
-`;
-
-const PlayButton = styled(motion.button)`
-  background: ${props => props.isPlaying ? '#ff6b6b' : '#4CAF50'};
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin: 0 auto;
-  font-size: 1.2rem;
-  
-  &:hover {
-    transform: scale(1.1);
-  }
+  /* Remove background and padding since BattleAudioPlayer handles its own styling */
 `;
 
 const VersusSection = styled.div`
@@ -247,23 +368,6 @@ const ConfidenceValue = styled.div`
   margin-top: 10px;
 `;
 
-const VoteButton = styled(motion.button)`
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  color: white;
-  border: none;
-  padding: 18px 40px;
-  border-radius: 12px;
-  font-size: 1.2rem;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 20px;
-  
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-`;
-
 const LoadingOverlay = styled(motion.div)`
   position: fixed;
   top: 0;
@@ -293,388 +397,727 @@ const LoadingText = styled.div`
   text-align: center;
 `;
 
-const BattleArena = ({ tournament, user, onTournamentUpdate, onTournamentComplete }) => {
-  const [currentBattle, setCurrentBattle] = useState(null);
-  const [selectedModel, setSelectedModel] = useState(null);
-  const [confidence, setConfidence] = useState(0.7);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState('');
-  const [playingAudio, setPlayingAudio] = useState(null);
-  const [showConfetti, setShowConfetti] = useState(false);
+const DownloadButton = styled(motion.button)`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  padding: 8px 12px;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  justify-content: center;
+  transition: all 0.3s ease;
   
-  const audioRefs = useRef({});
-  useEffect(() => {
-    if (tournament && !currentBattle) {
-      startNextBattle();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tournament]);
+  &:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  svg {
+    font-size: 1rem;
+  }
+`;
 
-  const startNextBattle = async () => {
-    setIsLoading(true);
-    setLoadingMessage('Preparing battle arena...');
-    
-    try {
-      const response = await fetch(`/api/tournaments/${tournament.tournament_id}/battle`, {
-        method: 'POST',
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setCurrentBattle(data.battle);
-        setSelectedModel(null);
-        setLoadingMessage('');
-        toast.success('Battle ready! Listen to both models and vote for your favorite.');
-      } else {
-        throw new Error(data.error || 'Failed to start battle');
+const BattleArena = ({ tournamentId, initialTournamentData, onComplete }) => {
+  const [tournament, setTournament] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentRound, setCurrentRound] = useState(null);  const [currentPair, setCurrentPair] = useState(0);
+  const [selectedModel, setSelectedModel] = useState(null);
+  const [votingDisabled, setVotingDisabled] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,  });
+  const [showVictoryScreen, setShowVictoryScreen] = useState(false);
+  const [victorModel, setVictorModel] = useState(null);
+  const [loadingMessage, setLoadingMessage] = useState('Loading tournament data...');
+  const [confidence, setConfidence] = useState(0.8); // Default confidence value
+  useEffect(() => {
+    const fetchTournament = async () => {
+      setLoading(true);
+      setError(null);
+        // If we have initial tournament data, use it immediately
+      if (initialTournamentData) {
+        console.log('🚀 Using initial tournament data:', initialTournamentData);
+        console.log('🚀 Initial current_pair:', initialTournamentData.current_pair);
+        console.log('🚀 Initial pairs length:', initialTournamentData.pairs?.length);
+        setTournament(initialTournamentData);
+        setCurrentRound(initialTournamentData.current_round);
+        setCurrentPair(initialTournamentData.current_pair || 0);
+        setLoading(false);
+        return;
       }
-    } catch (error) {
-      console.error('Battle start failed:', error);
-      toast.error('Failed to start battle. Please try again.');
-    } finally {
-      setIsLoading(false);
+      
+      // Otherwise fetch from API
+      try {
+        const response = await fetch(`http://localhost:10000/api/tournaments/${tournamentId}`);
+        const data = await response.json();
+          if (data.success) {
+          console.log('📊 Fetched tournament data from API:', data.tournament);
+          setTournament(data.tournament);
+          setCurrentRound(data.tournament.current_round);
+          setCurrentPair(data.tournament.current_pair || 0);
+          setLoading(false);
+        } else {
+          throw new Error(data.error || 'Failed to fetch tournament data');
+        }
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchTournament();
+  }, [tournamentId, initialTournamentData]);
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // Handle onComplete callback properly
+  const handleTournamentComplete = () => {
+    if (onComplete && typeof onComplete === 'function') {
+      onComplete();
     }
   };
+  useEffect(() => {
+    if (tournament) {
+      // Only update if the round actually changed
+      if (currentRound !== tournament.current_round) {
+        setCurrentRound(tournament.current_round);
+        setCurrentPair(0); // Reset to 0 only when round changes
+        setSelectedModel(null);
+        setHasVoted(false);
+        setVotingDisabled(false);
+        setShowConfetti(false);
+      } else {        // If round hasn't changed, sync currentPair with backend data
+        if (tournament.current_pair !== undefined && tournament.current_pair !== currentPair) {
+          console.log('🔄 Syncing currentPair from', currentPair, 'to tournament.current_pair:', tournament.current_pair);
+          setCurrentPair(tournament.current_pair);
+        }
+      }
+    }
+  }, [tournament, currentRound, currentPair]);  // Additional effect to ensure currentPair stays in sync after data merging
+  useEffect(() => {
+    if (tournament && tournament.current_pair !== undefined && tournament.current_pair !== currentPair) {
+      console.log('🔄 Emergency sync: currentPair', currentPair, '→', tournament.current_pair);
+      setCurrentPair(tournament.current_pair);
+      // Also reset voting state when pair changes
+      setSelectedModel(null);
+      setVotingDisabled(false);
+      setHasVoted(false);
+    }
+  }, [tournament, currentPair]);
 
   const handleVote = async () => {
-    if (!selectedModel || !currentBattle) return;
+    if (!selectedModel || !tournament) return;
     
-    setIsLoading(true);
-    setLoadingMessage('Recording vote and evolving models...');
-    
-    try {
-      const response = await fetch('/api/tournaments/vote', {
+    setLoading(true);
+    setError(null);
+      try {      const voteData = {
+        tournament_id: tournament.tournament_id,
+        winner_id: selectedModel,
+        confidence: 0.8,
+        user_id: tournament.user_id || "test_user_audio",
+        reasoning: "User selection via battle arena"
+      };
+      
+      console.log('🗳️ Sending vote data:', voteData);
+      
+      const response = await fetch('http://localhost:10000/api/tournaments/vote-db', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          tournament_id: tournament.tournament_id,
-          winner_id: selectedModel,
-          confidence: confidence,
-          reasoning: `Preferred model in round ${tournament.current_round}`
-        }),
+        body: JSON.stringify(voteData),
       });
       
-      const data = await response.json();
-      
-      if (data.success) {
-        if (data.result.tournament_complete) {
+      console.log('📊 Vote response status:', response.status);
+        const data = await response.json();
+      console.log('📋 Vote response data:', data);
+      console.log('🏆 Tournament data in response:', data.tournament);
+      console.log('📊 Current pair in response:', data.tournament.current_pair);
+      console.log('🎮 Total pairs:', data.tournament.pairs?.length);
+        if (data.success) {
+        setHasVoted(true);
+        setVotingDisabled(true);
+        toast.success('Your vote has been recorded!');        // Update tournament data by merging with existing data (don't overwrite!)
+        if (data.tournament) {
+          console.log('🔄 Merging tournament data:', data.tournament);
+          console.log('🔄 Setting currentPair from', currentPair, 'to:', data.tournament.current_pair);
+          console.log('🔄 Tournament status:', data.tournament.status);
+          console.log('🔄 Total pairs:', data.tournament.pairs?.length || 'unknown');
+          
+          // Merge the response data with existing tournament data
+          setTournament(prevTournament => {
+            const mergedTournament = {
+              ...prevTournament,  // Keep all existing data (pairs, max_rounds, etc.)
+              ...data.tournament,  // Update with new status/current_pair from response
+              // Ensure we keep the pairs array if it exists
+              pairs: data.tournament.pairs || prevTournament?.pairs
+            };
+            console.log('🔄 Merged tournament:', mergedTournament);
+            return mergedTournament;
+          });
+          
+          // Update current pair state - force update even if same value
+          console.log('🔄 Force updating currentPair to:', data.tournament.current_pair);
+          setCurrentPair(data.tournament.current_pair);
+          
+          // Force a brief loading state to ensure UI updates
+          setLoading(true);
+          setTimeout(() => {
+            setLoading(false);
+            console.log('🔄 Loading state cleared, current pair should be:', data.tournament.current_pair);
+          }, 100);
+          
+          console.log('🔄 Updated currentPair to:', data.tournament.current_pair);
+          console.log('🎮 Tournament progression check: currentPair will be', data.tournament.current_pair, 'out of', data.tournament.pairs?.length || 'unknown', 'pairs');
+        }
+        
+        // Check if tournament is complete
+        if (data.tournament && data.tournament.status === 'completed') {
           setShowConfetti(true);
           setTimeout(() => {
-            onTournamentComplete();
-            toast.success(`Tournament complete! ${data.result.champion.nickname} is your champion!`);
+            setShowVictoryScreen(true);
+            setVictorModel(data.tournament.winner);
+            if (data.tournament.winner && data.tournament.winner.nickname) {
+              toast.success(`🎉 ${data.tournament.winner.nickname} has won the tournament!`);
+            }
+            if (onComplete && typeof onComplete === 'function') {
+              onComplete();
+            }
           }, 3000);
         } else {
-          onTournamentUpdate({
-            ...tournament,
-            current_round: data.result.next_round,
-            competitors: [data.result.winner, data.result.evolved_challenger]
-          });
-          setCurrentBattle(null);
-          toast.success(`Round ${tournament.current_round} complete! Next challenger evolved.`);
+          // Reset voting state for next pair - do this immediately, not with timeout
+          setSelectedModel(null);
+          setVotingDisabled(false);
+          setHasVoted(false);
+          console.log('🔄 Reset voting state for next pair');
         }
       } else {
         throw new Error(data.error || 'Failed to record vote');
       }
-    } catch (error) {
-      console.error('Vote recording failed:', error);
-      toast.error('Failed to record vote. Please try again.');
+    } catch (err) {
+      setError(err.message);
     } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
+      setLoading(false);
+    }
+  };
+  const handleModelSelect = (modelId) => {
+    console.log('🎯 handleModelSelect called with:', modelId);
+    console.log('🔒 votingDisabled:', votingDisabled);
+    console.log('🎲 selectedModel before:', selectedModel);
+    
+    if (votingDisabled) {
+      console.log('❌ Voting disabled, returning early');
+      return;
+    }
+    
+    setSelectedModel(prev => {
+      const newSelection = prev === modelId ? null : modelId;
+      console.log('✅ Setting selectedModel to:', newSelection);
+      return newSelection;
+    });  };
+
+  // Simple stopAudio function for the AudioPlayer callback
+  const stopAudio = () => {
+    // This is now handled by the AudioPlayer component
+    console.log('Audio stop requested');
+  };  // Calculate progress safely with comprehensive null checking
+  const progress = tournament?.current_round && tournament?.max_rounds ? 
+    (tournament.current_round / tournament.max_rounds) : 0;
+    
+  // Calculate pair progress as backup
+  const pairProgress = tournament?.current_pair !== undefined && tournament?.pairs?.length ? 
+    (tournament.current_pair / tournament.pairs.length) : 0;
+    // Debug logging
+  console.log('🏆 Tournament data:', tournament);
+  console.log('📊 Current pair:', currentPair);
+  console.log('🎯 Selected model:', selectedModel);
+  console.log('🔒 Voting disabled:', votingDisabled);
+  console.log('⚡ Loading:', loading);
+  if (tournament?.pairs?.[currentPair]) {
+    console.log('📝 Current pair data:', tournament.pairs[currentPair]);
+    console.log('🅰️ Model A ID:', tournament.pairs[currentPair]?.model_a?.id);
+    console.log('🅱️ Model B ID:', tournament.pairs[currentPair]?.model_b?.id);
+  } else {
+    console.log('❌ No current pair data available - currentPair:', currentPair, 'pairs length:', tournament?.pairs?.length);
+  }
+  
+  // Download mix function
+  const handleDownloadMix = async (modelId, modelName, audioUrl) => {
+    try {
+      console.log(`🔽 Downloading mix: ${modelName} (${modelId})`);
+      
+      // Create download link
+      const response = await fetch(audioUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // Generate filename
+      const tournamentPrefix = tournament?.id?.slice(-8) || 'tournament';
+      const filename = `${tournamentPrefix}_${modelId}_mix.wav`;
+      
+      // Create and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`Downloaded ${modelName} mix!`);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download mix');    }
+  };
+
+  // Download all mixes from current battle
+  const handleDownloadAll = async () => {
+    try {
+      const currentPairData = tournament?.pairs?.[currentPair];
+      if (!currentPairData) {
+        toast.error('No battle data available');
+        return;
+      }
+
+      console.log('🔽 Downloading all mixes from current battle...');
+      
+      // Download both models' mixes
+      const downloads = [
+        {
+          modelId: currentPairData.model_a.id,
+          modelName: currentPairData.model_a.name,
+          audioUrl: currentPairData.audio_a
+        },
+        {
+          modelId: currentPairData.model_b.id,
+          modelName: currentPairData.model_b.name,
+          audioUrl: currentPairData.audio_b
+        }
+      ];
+
+      let successCount = 0;
+      
+      for (const download of downloads) {
+        try {
+          const response = await fetch(download.audioUrl);
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          
+          const tournamentPrefix = tournament?.id?.slice(-8) || 'tournament';
+          const filename = `${tournamentPrefix}_${download.modelId}_mix.wav`;
+          
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          successCount++;
+          
+          // Small delay between downloads to avoid overwhelming the browser
+          await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (error) {
+          console.error(`Failed to download ${download.modelName}:`, error);
+        }
+      }
+      
+      if (successCount === downloads.length) {
+        toast.success(`Downloaded all ${successCount} mixes from Round ${tournament?.current_round || currentPair + 1}!`);
+      } else if (successCount > 0) {
+        toast.success(`Downloaded ${successCount} of ${downloads.length} mixes`);
+      } else {
+        toast.error('Failed to download any mixes');
+      }
+    } catch (error) {
+      console.error('Download all error:', error);
+      toast.error('Failed to download mixes');
     }
   };
 
-  const playAudio = (modelId, audioPath) => {
-    // Stop any currently playing audio
-    Object.values(audioRefs.current).forEach(audio => {
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-    });
-    
-    setPlayingAudio(null);
-    
-    // For demo purposes, we'll simulate audio playback
-    // In production, this would play the actual audio files
-    setPlayingAudio(modelId);
-    
-    // Simulate audio duration
-    setTimeout(() => {
-      setPlayingAudio(null);
-    }, 30000); // 30 second preview
-  };
-
-  const stopAudio = () => {
-    Object.values(audioRefs.current).forEach(audio => {
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-    });
-    setPlayingAudio(null);
-  };
-
-  const progress = tournament.current_round / tournament.max_rounds;
-  
   return (
-    <ArenaContainer
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      {showConfetti && (
-        <Confetti
-          width={window.innerWidth}
-          height={window.innerHeight}
-          recycle={false}
-          numberOfPieces={500}
-        />
-      )}
-      
-      <ArenaHeader
-        initial={{ y: -30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2 }}
+    <PageTransition>
+      <ArenaContainer
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
       >
-        <RoundInfo>
-          <RoundBadge>
-            Round {tournament.current_round} of {tournament.max_rounds}
-          </RoundBadge>
-          <ProgressBar>
-            <ProgressFill
-              initial={{ width: 0 }}
-              animate={{ width: `${progress * 100}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-            />
-          </ProgressBar>
-          <div style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-            {Math.round(progress * 100)}% Complete
-          </div>
-        </RoundInfo>
-      </ArenaHeader>
-
-      {currentBattle && (
-        <>
-          <BattleArea
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            {/* Model A */}
-            <ModelCard
-              canVote={!isLoading}
-              isSelected={selectedModel === currentBattle.model_a.id}
-              onClick={() => !isLoading && setSelectedModel(currentBattle.model_a.id)}
-              whileHover={{ scale: !isLoading ? 1.02 : 1 }}
-              whileTap={{ scale: !isLoading ? 0.98 : 1 }}
-            >
-              <ModelAvatar>
-                {currentBattle.model_a.nickname.charAt(0)}
-              </ModelAvatar>
-              <ModelName>{currentBattle.model_a.name}</ModelName>
-              <ModelNickname>"{currentBattle.model_a.nickname}"</ModelNickname>
-              
-              <ModelStats>
-                <Stat>
-                  <div className="label">ELO</div>
-                  <div className="value">{Math.round(currentBattle.model_a.elo_rating)}</div>
-                </Stat>
-                <Stat>
-                  <div className="label">Tier</div>
-                  <div className="value">{currentBattle.model_a.tier}</div>
-                </Stat>
-                <Stat>
-                  <div className="label">Gen</div>
-                  <div className="value">{currentBattle.model_a.generation}</div>
-                </Stat>
-              </ModelStats>
-              
-              <AudioPlayer>
-                <PlayButton
-                  isPlaying={playingAudio === currentBattle.model_a.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (playingAudio === currentBattle.model_a.id) {
-                      stopAudio();
-                    } else {
-                      playAudio(currentBattle.model_a.id, currentBattle.audio_a);
-                    }
-                  }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  {playingAudio === currentBattle.model_a.id ? <FiPause /> : <FiPlay />}
-                </PlayButton>
-              </AudioPlayer>
-              
-              {selectedModel === currentBattle.model_a.id && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  style={{
-                    position: 'absolute',
-                    top: 10,
-                    right: 10,
-                    background: '#4CAF50',
-                    color: 'white',
-                    padding: '5px 10px',
-                    borderRadius: '15px',
-                    fontSize: '0.8rem',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  ✓ SELECTED
-                </motion.div>
-              )}
-            </ModelCard>
-
-            {/* VS Section */}
-            <VersusSection>
-              <VersusText
-                animate={{ 
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 5, -5, 0]
+        {showConfetti && (
+          <Confetti
+            width={window.innerWidth}
+            height={window.innerHeight}
+            recycle={false}
+            numberOfPieces={500}
+          />
+        )}
+        
+        <ArenaHeader
+          initial={{ y: -30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >          <RoundInfo>
+            <RoundBadge>
+              Round {tournament?.current_round || '?'} of {tournament?.max_rounds || '?'}
+            </RoundBadge>
+            <ProgressBar>
+              <ProgressFill
+                initial={{ width: "0%" }}
+                animate={{ width: `${isNaN(progress) ? (pairProgress * 100) : (progress * 100)}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              />
+            </ProgressBar>
+            <div style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+              {isNaN(progress) ? 
+                `Pair ${(tournament?.current_pair || 0) + 1}/${tournament?.pairs?.length || '?'}` :
+                `${Math.round(progress * 100)}% Complete`
+              }
+            </div>
+          </RoundInfo>
+        </ArenaHeader>        {tournament?.pairs && tournament.pairs.length > 0 && currentPair < tournament.pairs.length && (
+          <div key={`battle-pair-${currentPair}`}>
+            <BattleArea
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >{/* Model A */}              <EnhancedModelCard
+                clickable={!loading && !votingDisabled}
+                canVote={!loading && !votingDisabled}
+                isSelected={selectedModel === tournament?.pairs?.[currentPair]?.model_a?.id}
+                onClick={() => {
+                  console.log('🎯 Model A clicked!');
+                  console.log('📍 Model A ID:', tournament?.pairs?.[currentPair]?.model_a?.id);
+                  handleModelSelect(tournament?.pairs?.[currentPair]?.model_a?.id);
                 }}
-                transition={{ 
-                  duration: 2, 
-                  repeat: Infinity,
-                  repeatType: "reverse"
+                whileHover={{ scale: !loading ? 1.02 : 1 }}
+                whileTap={{ scale: !loading ? 0.98 : 1 }}
+              >                <ModelAvatar>
+                  {tournament?.pairs?.[currentPair]?.model_a?.nickname ? 
+                    tournament.pairs[currentPair].model_a.nickname.charAt(0) : 'A'}
+                </ModelAvatar>
+                <ModelName>{tournament?.pairs?.[currentPair]?.model_a?.name || 'Model A'}</ModelName>
+                <ModelNickname>"{tournament?.pairs?.[currentPair]?.model_a?.nickname || 'Challenger'}"</ModelNickname>
+                
+                <ModelStats>
+                  <Stat>
+                    <div className="label">ELO</div>
+                    <div className="value">{Math.round(tournament?.pairs?.[currentPair]?.model_a?.elo_rating || 0)}</div>
+                  </Stat>                  <Stat>
+                    <div className="label">Tier</div>
+                    <div className="value">{tournament?.pairs?.[currentPair]?.model_a?.tier || 'N/A'}</div>
+                  </Stat>
+                  <Stat>
+                    <div className="label">Gen</div>
+                    <div className="value">{tournament?.pairs?.[currentPair]?.model_a?.generation || '1'}</div>                  </Stat>
+                </ModelStats>                  <ModelAudioPlayer>
+                  <BattleAudioPlayer
+                    track={{
+                      title: tournament?.pairs?.[currentPair]?.model_a?.name || 'Model A Mix',
+                      artist: tournament?.pairs?.[currentPair]?.model_a?.nickname || 'AI Challenger',
+                      url: tournament?.pairs?.[currentPair]?.audio_a,
+                      artwork: tournament?.pairs?.[currentPair]?.model_a?.nickname?.charAt(0) || 'A'
+                    }}
+                    onPlayStateChange={(playing, track) => {
+                      if (playing) {
+                        // Stop any other audio that might be playing
+                        stopAudio();
+                      }
+                    }}                  />
+                </ModelAudioPlayer>
+                
+                <DownloadButton
+                  onClick={() => handleDownloadMix(
+                    tournament?.pairs?.[currentPair]?.model_a?.id,
+                    tournament?.pairs?.[currentPair]?.model_a?.name,
+                    tournament?.pairs?.[currentPair]?.audio_a
+                  )}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  disabled={!tournament?.pairs?.[currentPair]?.audio_a}
+                >
+                  <FiDownload />
+                  Download Mix
+                </DownloadButton>
+                
+                {selectedModel === tournament?.pairs?.[currentPair]?.model_a?.id && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{
+                      position: 'absolute',
+                      top: 10,
+                      right: 10,
+                      background: '#4CAF50',
+                      color: 'white',
+                      padding: '5px 10px',
+                      borderRadius: '15px',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    ✓ SELECTED
+                  </motion.div>
+                )}
+              </EnhancedModelCard>
+
+              {/* VS Section */}
+              <VersusSection>
+                <VersusText
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                    rotate: [0, 5, -5, 0]
+                  }}
+                  transition={{ 
+                    duration: 2, 
+                    repeat: Infinity,
+                    repeatType: "reverse"
+                  }}
+                >
+                  VS
+                </VersusText>
+                <FiZap style={{ fontSize: '2rem', color: '#667eea' }} />
+              </VersusSection>              {/* Model B */}              <EnhancedModelCard
+                clickable={!loading && !votingDisabled}
+                canVote={!loading && !votingDisabled}
+                isSelected={selectedModel === tournament?.pairs?.[currentPair]?.model_b?.id}
+                onClick={() => {
+                  console.log('🎯 Model B clicked!');
+                  console.log('📍 Model B ID:', tournament?.pairs?.[currentPair]?.model_b?.id);
+                  handleModelSelect(tournament?.pairs?.[currentPair]?.model_b?.id);
+                }}                whileHover={{ scale: !loading ? 1.02 : 1 }}
+                whileTap={{ scale: !loading ? 0.98 : 1 }}
+              >
+                <ModelAvatar>
+                  {tournament?.pairs?.[currentPair]?.model_b?.nickname ? 
+                    tournament.pairs[currentPair].model_b.nickname.charAt(0) : 'B'}
+                </ModelAvatar><ModelName>{tournament?.pairs?.[currentPair]?.model_b?.name || 'Model B'}</ModelName>
+                <ModelNickname>"{tournament?.pairs?.[currentPair]?.model_b?.nickname || 'Contender'}"</ModelNickname>
+                
+                <ModelStats>
+                  <Stat>
+                    <div className="label">ELO</div>
+                    <div className="value">{Math.round(tournament?.pairs?.[currentPair]?.model_b?.elo_rating || 0)}</div>
+                  </Stat>
+                  <Stat>
+                    <div className="label">Tier</div>
+                    <div className="value">{tournament?.pairs?.[currentPair]?.model_b?.tier || 'N/A'}</div>
+                  </Stat>
+                  <Stat>
+                    <div className="label">Gen</div>
+                    <div className="value">{tournament?.pairs?.[currentPair]?.model_b?.generation || '1'}</div>
+                  </Stat>                </ModelStats>                  <ModelAudioPlayer>
+                  <BattleAudioPlayer
+                    track={{
+                      title: tournament?.pairs?.[currentPair]?.model_b?.name || 'Model B Mix',
+                      artist: tournament?.pairs?.[currentPair]?.model_b?.nickname || 'AI Contender',
+                      url: tournament?.pairs?.[currentPair]?.audio_b,
+                      artwork: tournament?.pairs?.[currentPair]?.model_b?.nickname?.charAt(0) || 'B'
+                    }}
+                    onPlayStateChange={(playing, track) => {
+                      if (playing) {
+                        // Stop any other audio that might be playing
+                        stopAudio();
+                      }
+                    }}                  />
+                </ModelAudioPlayer>
+                
+                <DownloadButton
+                  onClick={() => handleDownloadMix(
+                    tournament?.pairs?.[currentPair]?.model_b?.id,
+                    tournament?.pairs?.[currentPair]?.model_b?.name,
+                    tournament?.pairs?.[currentPair]?.audio_b
+                  )}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  disabled={!tournament?.pairs?.[currentPair]?.audio_b}
+                >
+                  <FiDownload />
+                  Download Mix
+                </DownloadButton>
+                
+                {selectedModel === tournament?.pairs?.[currentPair]?.model_b?.id && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{
+                      position: 'absolute',
+                      top: 10,
+                      right: 10,
+                      background: '#4CAF50',
+                      color: 'white',
+                      padding: '5px 10px',
+                      borderRadius: '15px',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    ✓ SELECTED
+                  </motion.div>
+                )}
+              </EnhancedModelCard>
+            </BattleArea>
+
+            <VotingSection
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              <h3 style={{ color: 'white', marginBottom: '20px' }}>
+                🎧 Vote for your favorite mix!
+              </h3>
+              
+              <ConfidenceSlider>
+                <SliderLabel>
+                  How confident are you in your choice?
+                </SliderLabel>              <Slider
+                  type="range"
+                  min="0.1"
+                  max="1.0"
+                  step="0.1"
+                  value={confidence}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    setConfidence(isNaN(value) || value < 0.1 ? 0.1 : value > 1.0 ? 1.0 : value);
+                  }}
+                />              <ConfidenceValue>
+                  {Math.round(confidence * 100)}% Confident
+                </ConfidenceValue>
+              </ConfidenceSlider>
+
+              {/* Download All Button */}
+              <DownloadButton
+                onClick={() => handleDownloadAll()}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                style={{ 
+                  background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                  marginBottom: '15px'
                 }}
               >
-                VS
-              </VersusText>
-              <FiZap style={{ fontSize: '2rem', color: '#667eea' }} />
-            </VersusSection>
+                <FiDownload />
+                Download All Mixes
+              </DownloadButton>
 
-            {/* Model B */}
-            <ModelCard
-              canVote={!isLoading}
-              isSelected={selectedModel === currentBattle.model_b.id}
-              onClick={() => !isLoading && setSelectedModel(currentBattle.model_b.id)}
-              whileHover={{ scale: !isLoading ? 1.02 : 1 }}
-              whileTap={{ scale: !isLoading ? 0.98 : 1 }}
+              <VoteButton
+                variant="primary"
+                size="large"
+                onClick={handleVote}
+                disabled={!selectedModel || loading}
+                fullWidth={true}
+                whileHover={{ scale: selectedModel && !loading ? 1.05 : 1 }}
+                whileTap={{ scale: selectedModel && !loading ? 0.95 : 1 }}
+              >
+                {!selectedModel ? 'Select a model to vote' : 
+                 loading ? 'Processing...' : '🗳️ Cast Your Vote'}              </VoteButton>
+            </VotingSection>
+          </div>
+        )}
+
+        <AnimatePresence>
+          {loading && (
+            <LoadingOverlay
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
             >
-              <ModelAvatar>
-                {currentBattle.model_b.nickname.charAt(0)}
-              </ModelAvatar>
-              <ModelName>{currentBattle.model_b.name}</ModelName>
-              <ModelNickname>"{currentBattle.model_b.nickname}"</ModelNickname>
-              
-              <ModelStats>
-                <Stat>
-                  <div className="label">ELO</div>
-                  <div className="value">{Math.round(currentBattle.model_b.elo_rating)}</div>
-                </Stat>
-                <Stat>
-                  <div className="label">Tier</div>
-                  <div className="value">{currentBattle.model_b.tier}</div>
-                </Stat>
-                <Stat>
-                  <div className="label">Gen</div>
-                  <div className="value">{currentBattle.model_b.generation}</div>
-                </Stat>
-              </ModelStats>
-              
-              <AudioPlayer>
-                <PlayButton
-                  isPlaying={playingAudio === currentBattle.model_b.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (playingAudio === currentBattle.model_b.id) {
-                      stopAudio();
-                    } else {
-                      playAudio(currentBattle.model_b.id, currentBattle.audio_b);
-                    }
-                  }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  {playingAudio === currentBattle.model_b.id ? <FiPause /> : <FiPlay />}
-                </PlayButton>
-              </AudioPlayer>
-              
-              {selectedModel === currentBattle.model_b.id && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  style={{
-                    position: 'absolute',
-                    top: 10,
-                    right: 10,
-                    background: '#4CAF50',
-                    color: 'white',
-                    padding: '5px 10px',
-                    borderRadius: '15px',
-                    fontSize: '0.8rem',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  ✓ SELECTED
-                </motion.div>
-              )}
-            </ModelCard>
-          </BattleArea>
+              <LoadingSpinner
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              />
+              <LoadingText>{loadingMessage}</LoadingText>
+            </LoadingOverlay>
+          )}
+        </AnimatePresence>
 
-          <VotingSection
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.6 }}
-          >
-            <h3 style={{ color: 'white', marginBottom: '20px' }}>
-              🎧 Vote for your favorite mix!
-            </h3>
-            
-            <ConfidenceSlider>
-              <SliderLabel>
-                How confident are you in your choice?
-              </SliderLabel>              <Slider
-                type="range"
-                min="0.1"
-                max="1.0"
-                step="0.1"
-                value={confidence}
-                onChange={(e) => {
-                  const value = parseFloat(e.target.value);
-                  setConfidence(isNaN(value) || value < 0.1 ? 0.1 : value > 1.0 ? 1.0 : value);
-                }}
-              />              <ConfidenceValue>
-                {Math.round(confidence * 100)}% Confident
-              </ConfidenceValue>
-            </ConfidenceSlider>
-
-            <VoteButton
-              onClick={handleVote}
-              disabled={!selectedModel || isLoading}
-              whileHover={{ scale: selectedModel && !isLoading ? 1.05 : 1 }}
-              whileTap={{ scale: selectedModel && !isLoading ? 0.95 : 1 }}
-            >
-              {!selectedModel ? 'Select a model to vote' : 
-               isLoading ? 'Processing...' : '🗳️ Cast Your Vote'}
-            </VoteButton>
-          </VotingSection>
-        </>
-      )}
-
-      <AnimatePresence>
-        {isLoading && (
-          <LoadingOverlay
+        {showVictoryScreen && victorModel && (
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.7)',
+              backdropFilter: 'blur(5px)',
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <LoadingSpinner
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            />
-            <LoadingText>{loadingMessage}</LoadingText>
-          </LoadingOverlay>
+            <Card
+              variant="elevated"
+              style={{
+                zIndex: 2000,
+                maxWidth: '500px',
+                width: '90%',
+                border: '2px solid #4CAF50',
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                style={{ textAlign: 'center' }}
+              >                <h2 style={{ color: '#4CAF50', marginBottom: '20px' }}>
+                  🎉 Tournament Complete!
+                </h2>
+                <h3 style={{ color: 'white', marginBottom: '10px' }}>
+                  Champion: {victorModel?.nickname || 'Unknown'}
+                </h3>
+                  <Button
+                  variant="primary"
+                  size="large"
+                  onClick={() => {
+                    setShowVictoryScreen(false);
+                    handleTournamentComplete();
+                  }}
+                >
+                  View Results
+                </Button>
+              </motion.div>
+            </Card>
+          </motion.div>
         )}
-      </AnimatePresence>
-    </ArenaContainer>
+      </ArenaContainer>
+    </PageTransition>
   );
 };
 

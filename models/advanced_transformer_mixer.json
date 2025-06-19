@@ -1,0 +1,43 @@
+{
+  "name": "Advanced Transformer Mixer",
+  "nickname": "Transformer",
+  "architecture": "Transformer",
+  "created_at": "2025-06-18T01:20:27.899212",
+  "description": "Transformer-based audio mixer with specialized attention_mechanisms, contextual_mixing, harmonic_analysis",
+  "generation": 1,
+  "tier": "Expert",
+  "elo_rating": 1600,
+  "capabilities": {
+    "attention_modeling": 0.95,
+    "contextual_understanding": 0.9,
+    "harmonic_enhancement": 0.95,
+    "spectral_analysis": 0.9,
+    "multi_track_coordination": 0.85
+  },
+  "specializations": [
+    "attention_mechanisms",
+    "contextual_mixing",
+    "harmonic_analysis"
+  ],
+  "preferred_genres": [
+    "orchestral",
+    "jazz",
+    "complex_arrangements"
+  ],
+  "signature_techniques": [
+    "self_attention",
+    "cross_modal_fusion",
+    "positional_encoding"
+  ],
+  "performance_metrics": {
+    "parameter_count": 44235274,
+    "input_shape": [
+      2,
+      128,
+      1000
+    ],
+    "estimated_mae": 0.05,
+    "status": "ready_for_tournament"
+  },
+  "model_file_path": "models/advanced_transformer_mixer.pth"
+}

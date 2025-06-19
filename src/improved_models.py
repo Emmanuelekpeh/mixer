@@ -290,14 +290,32 @@ class DataAugmentation:
     @staticmethod
     def freq_mask(spectrogram, max_mask_pct=0.1):
         """Mask random frequency bands."""
-        freq_mask_param = int(max_mask_pct * spectrogram.size(-2))
-        return torchaudio.transforms.FrequencyMasking(freq_mask_param)(spectrogram)
+        freq_size = spectrogram.size(-2)
+        mask_size = int(max_mask_pct * freq_size)
+        if mask_size == 0:
+            return spectrogram
+            
+        mask_start = torch.randint(0, freq_size - mask_size, (1,)).item()
+        mask_end = mask_start + mask_size
+        
+        masked = spectrogram.clone()
+        masked[:, :, mask_start:mask_end, :] = 0
+        return masked
     
     @staticmethod
     def time_mask(spectrogram, max_mask_pct=0.05):
         """Mask random time segments."""
-        time_mask_param = int(max_mask_pct * spectrogram.size(-1))
-        return torchaudio.transforms.TimeMasking(time_mask_param)(spectrogram)
+        time_size = spectrogram.size(-1)
+        mask_size = int(max_mask_pct * time_size)
+        if mask_size == 0:
+            return spectrogram
+            
+        mask_start = torch.randint(0, time_size - mask_size, (1,)).item()
+        mask_end = mask_start + mask_size
+        
+        masked = spectrogram.clone()
+        masked[:, :, :, mask_start:mask_end] = 0
+        return masked
     
     @staticmethod
     def add_noise(spectrogram, noise_level=0.01):

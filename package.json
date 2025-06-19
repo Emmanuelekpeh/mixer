@@ -1,7 +1,7 @@
 {
-  "name": "ai-mixer-tournament",
+  "name": "mixture-tournament",
   "version": "1.0.0",
-  "description": "AI Mixer Tournament - A platform for AI mixing models to compete and evolve",
+  "description": "Mixture Tournament - A platform for AI mixing models to compete and evolve",
   "main": "tournament_webapp/dev_server.py",
   "scripts": {
     "start": "python tournament_webapp/dev_server.py --production",

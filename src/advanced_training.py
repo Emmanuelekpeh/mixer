@@ -28,7 +28,7 @@ warnings.filterwarnings('ignore')
 
 # Import our models
 from baseline_cnn import SpectrogramDataset, BaselineCNN, EnhancedCNN, N_OUTPUTS, DEVICE
-from improved_models_fixed import ImprovedEnhancedCNN, MultiScaleTransformerMixer
+from improved_models import ImprovedEnhancedCNN, MultiScaleTransformerMixer
 
 # Enhanced configuration
 ENHANCED_EPOCHS = 40
@@ -225,6 +225,8 @@ def train_with_hyperparams(model, train_loader, val_loader, params, epochs=15):
     early_stopping = EarlyStopping(patience=8)
     
     model.train()
+    val_loss = float('inf')  # Initialize with infinity
+    
     for epoch in range(epochs):
         train_loss = 0.0
         for data, target in train_loader:

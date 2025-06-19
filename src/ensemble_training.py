@@ -14,7 +14,7 @@ from pathlib import Path
 import json
 from sklearn.metrics import mean_absolute_error
 from baseline_cnn import SpectrogramDataset, BaselineCNN, EnhancedCNN, DEVICE
-from improved_models_fixed import ImprovedEnhancedCNN
+from improved_models import ImprovedEnhancedCNN
 from torch.utils.data import DataLoader
 import warnings
 warnings.filterwarnings('ignore')
@@ -307,13 +307,11 @@ def optimize_ensemble_hyperparameters(models, model_names, train_loader, val_loa
                 
                 for pred, weight in zip(all_predictions, weights):
                     ensemble_predictions += weight * pred
-                
-                targets = []
+                  targets = []
                 with torch.no_grad():
                     for data, target in test_loader:
                         targets.append(target.cpu().numpy())
                 targets = np.vstack(targets)
-                
                 mae = mean_absolute_error(targets, ensemble_predictions)
                 
             else:  # learned
@@ -336,7 +334,6 @@ def optimize_ensemble_hyperparameters(models, model_names, train_loader, val_loa
                 ensemble.eval()
                 test_predictions = []
                 test_targets = []
-                
                 with torch.no_grad():
                     for data, target in test_loader:
                         data, target = data.to(DEVICE), target.to(DEVICE)
@@ -347,15 +344,13 @@ def optimize_ensemble_hyperparameters(models, model_names, train_loader, val_loa
                 test_predictions = np.vstack(test_predictions)
                 test_targets = np.vstack(test_targets)
                 mae = mean_absolute_error(test_targets, test_predictions)
-            
-            print(f"     MAE: {mae:.6f}")
-            
-            if mae < best_mae:
-                best_mae = mae
-                best_config = config.copy()
-                if config['method'] == 'learned':
+                print(f"     MAE: {mae:.6f}")
+                
+                if mae < best_mae:
+                    best_mae = mae
+                    best_config = config.copy()
                     best_ensemble = ensemble
-                print(f"     ✅ New best configuration!")
+                    print(f"     ✅ New best configuration!")
             
         except Exception as e:
             print(f"     ❌ Configuration failed: {e}")

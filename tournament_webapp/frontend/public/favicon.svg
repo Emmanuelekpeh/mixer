@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <style>
+      .skull { fill: #8B0000; }
+      .note { fill: #FFD700; }
+      .eye { fill: #000; }
+    </style>
+  </defs>
+  <!-- Skull base -->
+  <circle cx="16" cy="14" r="10" class="skull"/>
+  <!-- Eye sockets -->
+  <circle cx="12" cy="12" r="2" class="eye"/>
+  <circle cx="20" cy="12" r="2" class="eye"/>
+  <!-- Nose -->
+  <polygon points="16,15 14,18 18,18" class="eye"/>
+  <!-- Jaw -->
+  <rect x="13" y="18" width="6" height="4" rx="1" class="skull"/>
+  <!-- Music note -->
+  <circle cx="26" cy="8" r="3" class="note"/>
+  <rect x="25" y="8" width="2" height="8" class="note"/>
+  <path d="M27,16 Q29,14 29,12" stroke="#FFD700" stroke-width="2" fill="none"/>
+</svg>

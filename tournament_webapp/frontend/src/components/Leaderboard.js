@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { FiAward, FiTrendingUp, FiCpu, FiZap } from 'react-icons/fi';
+import { Card, Button, PageTransition } from './ui';
 
 const LeaderboardContainer = styled(motion.div)`
   max-width: 1000px;
@@ -23,6 +25,10 @@ const Title = styled.h1`
 const Subtitle = styled.p`
   color: rgba(255, 255, 255, 0.7);
   font-size: 1.1rem;
+`;
+
+const EnhancedLeaderboardCard = styled(Card)`
+  overflow: hidden;
 `;
 
 const LeaderboardCard = styled(motion.div)`
@@ -60,14 +66,32 @@ const ModelRow = styled(motion.div)`
   gap: 20px;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
   
   &:hover {
     background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1;
   }
   
   &:last-child {
     border-bottom: none;
+  }
+  
+  /* Rank highlighting */
+  &:nth-child(1) {
+    background: linear-gradient(to right, rgba(255, 215, 0, 0.05), transparent);
+  }
+  
+  &:nth-child(2) {
+    background: linear-gradient(to right, rgba(192, 192, 192, 0.05), transparent);
+  }
+  
+  &:nth-child(3) {
+    background: linear-gradient(to right, rgba(205, 127, 50, 0.05), transparent);
   }
   
   @media (max-width: 768px) {
@@ -99,13 +123,22 @@ const ModelAvatar = styled.div`
   width: 45px;
   height: 45px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: ${props => {
+    // Generate unique gradient based on first letter
+    const charCode = props.children ? props.children.toString().charCodeAt(0) : 65;
+    const hue1 = (charCode * 7) % 360;
+    const hue2 = (hue1 + 40) % 360;
+    return `linear-gradient(135deg, hsl(${hue1}, 70%, 50%) 0%, hsl(${hue2}, 70%, 40%) 100%)`;
+  }};
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: bold;
   font-size: 1rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.1);
 `;
 
 const ModelDetails = styled.div`
@@ -200,12 +233,11 @@ const Leaderboard = ({ user }) => {
       setLoading(false);
     }
   };
-
   const getRankIcon = (rank) => {
-    if (rank === 1) return '👑';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
-    return rank;
+    if (rank === 1) return <span style={{ fontSize: '1.4rem' }}>👑</span>;
+    if (rank === 2) return <span style={{ fontSize: '1.4rem' }}>🥈</span>;
+    if (rank === 3) return <span style={{ fontSize: '1.4rem' }}>🥉</span>;
+    return <span>{rank}</span>;
   };
 
   if (loading) {
@@ -227,57 +259,52 @@ const Leaderboard = ({ user }) => {
       </LeaderboardContainer>
     );
   }
-
   if (error) {
     return (
+      <PageTransition>
+        <LeaderboardContainer
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <Header>
+            <Title>🏆 Model Leaderboard</Title>
+            <Subtitle>Top performing AI mixing models</Subtitle>
+          </Header>
+          
+          <EnhancedLeaderboardCard>
+            <ErrorState>              <div>❌ {error}</div>
+              <Button
+                variant="primary"
+                size="medium"
+                onClick={() => window.location.reload()}
+                style={{ marginTop: '20px' }}
+              >
+                Retry
+              </Button>
+            </ErrorState>
+          </EnhancedLeaderboardCard>
+        </LeaderboardContainer>
+      </PageTransition>
+    );
+  }
+  return (
+    <PageTransition>
       <LeaderboardContainer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
       >
         <Header>
           <Title>🏆 Model Leaderboard</Title>
-          <Subtitle>Top performing AI mixing models</Subtitle>
+          <Subtitle>Battle-tested AI mixing champions ranked by ELO rating</Subtitle>
         </Header>
-        
-        <LeaderboardCard>
-          <ErrorState>
-            <div>❌ {error}</div>
-            <button 
-              onClick={() => window.location.reload()}
-              style={{
-                marginTop: '20px',
-                padding: '10px 20px',
-                background: '#667eea',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer'
-              }}
-            >
-              Retry
-            </button>
-          </ErrorState>
-        </LeaderboardCard>
-      </LeaderboardContainer>
-    );
-  }
 
-  return (
-    <LeaderboardContainer
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-    >
-      <Header>
-        <Title>🏆 Model Leaderboard</Title>
-        <Subtitle>Battle-tested AI mixing champions ranked by ELO rating</Subtitle>
-      </Header>
-
-      <LeaderboardCard
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-      >
+        <EnhancedLeaderboardCard
+          variant="elevated"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+        >
         <LeaderboardHeader>
           <div>Rank</div>
           <div>Model</div>
@@ -297,14 +324,13 @@ const Leaderboard = ({ user }) => {
             <Rank rank={model.rank}>
               {getRankIcon(model.rank)}
             </Rank>
-            
-            <ModelInfo>
+              <ModelInfo>
               <ModelAvatar>
-                {model.nickname.charAt(0)}
+                {model.nickname ? model.nickname.charAt(0) : 'M'}
               </ModelAvatar>
               <ModelDetails>
-                <ModelName>{model.name}</ModelName>
-                <ModelNickname>"{model.nickname}"</ModelNickname>
+                <ModelName>{model.name || 'Unknown'}</ModelName>
+                <ModelNickname>"{model.nickname || 'Model'}"</ModelNickname>
               </ModelDetails>
             </ModelInfo>
             
@@ -325,11 +351,11 @@ const Leaderboard = ({ user }) => {
             <Stat className="hide-mobile">
               <div className="value">{model.battles}</div>
               <div className="label">Battles</div>
-            </Stat>
-          </ModelRow>
+            </Stat>          </ModelRow>
         ))}
-      </LeaderboardCard>
+      </EnhancedLeaderboardCard>
     </LeaderboardContainer>
+    </PageTransition>
   );
 };
 

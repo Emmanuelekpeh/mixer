@@ -1,0 +1,43 @@
+{
+  "name": "VAE Audio Mixer",
+  "nickname": "VAE Blender",
+  "architecture": "VAE",
+  "created_at": "2025-06-18T01:20:27.387152",
+  "description": "VAE-based audio mixer with specialized latent_manipulation, smooth_blending, probabilistic_mixing",
+  "generation": 1,
+  "tier": "Professional",
+  "elo_rating": 1450,
+  "capabilities": {
+    "latent_modeling": 0.9,
+    "smooth_interpolation": 0.85,
+    "probabilistic_mixing": 0.8,
+    "spectral_analysis": 0.75,
+    "dynamic_range": 0.8
+  },
+  "specializations": [
+    "latent_manipulation",
+    "smooth_blending",
+    "probabilistic_mixing"
+  ],
+  "preferred_genres": [
+    "ambient",
+    "atmospheric",
+    "experimental"
+  ],
+  "signature_techniques": [
+    "latent_interpolation",
+    "probabilistic_encoding",
+    "smooth_generation"
+  ],
+  "performance_metrics": {
+    "parameter_count": 808107,
+    "input_shape": [
+      2,
+      128,
+      250
+    ],
+    "estimated_mae": 0.05,
+    "status": "ready_for_tournament"
+  },
+  "model_file_path": "models/vae_audio_mixer.pth"
+}

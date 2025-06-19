@@ -269,18 +269,17 @@ const UserProfile = ({ user }) => {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-    >
-      <ProfileHeader
+    >      <ProfileHeader
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2 }}
       >
         <Avatar>
-          {userStats.profile.username.charAt(0).toUpperCase()}
+          {userStats?.profile?.username ? userStats.profile.username.charAt(0).toUpperCase() : '?'}
         </Avatar>
-        <Username>{userStats.profile.username}</Username>
-        <TierBadge tier={userStats.profile.tier}>
-          {userStats.profile.tier} Mixer
+        <Username>{userStats?.profile?.username || 'User'}</Username>
+        <TierBadge tier={userStats?.profile?.tier || 'Beginner'}>
+          {userStats?.profile?.tier || 'Beginner'} Mixer
         </TierBadge>
         
         {nextTier.needed > 0 && (

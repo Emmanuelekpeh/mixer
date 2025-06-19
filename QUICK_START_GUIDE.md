@@ -1,8 +1,8 @@
-# 🎛️ AI Mixing System - Quick Start Guide
+# 🎛️ Mixture - Quick Start Guide
 
 ## 🚀 **READY TO USE! Here's How:**
 
-Your AI mixing system is **completely set up and working**. Here are the three ways to use it:
+Your Mixture AI mixing system is **completely set up and working**. Here are the three ways to use it:
 
 ---
 
@@ -145,11 +145,11 @@ pip install torch librosa soundfile scikit-learn numpy scipy matplotlib
 
 ## 🎉 **YOU'RE READY!**
 
-Your AI mixing system is **fully operational**. Start with the demo script and explore from there!
+Your Mixture system is **fully operational**. Start with the demo script and explore from there!
 
 ```bash
 # Try it right now:
 python demo_ai_mixer.py
 ```
 
-**🎵 Welcome to AI-powered music mixing! 🎛️**
+**🎵 Welcome to Mixture - AI-powered music mixing! 🎛️**

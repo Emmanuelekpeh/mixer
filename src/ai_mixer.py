@@ -216,8 +216,7 @@ class AudioMixer:
         output_level = 0.3 + 0.7 * mixing_params[9]  # 0.3x to 1.0x final level
         processed_audio *= output_level
         
-        # Normalize to prevent clipping
-        peak = np.max(np.abs(processed_audio))
+        # Normalize to prevent clipping        peak = np.max(np.abs(processed_audio))
         if peak > 0.95:
             processed_audio = processed_audio * (0.95 / peak)
         
@@ -238,27 +237,29 @@ class AudioMixer:
         # Low shelf (100 Hz)
         if abs(low_boost - 0.5) > 0.1:
             gain_db = (low_boost - 0.5) * 12  # ±6dB
-            b, a = signal.iirfilter(2, 100, btype='lowpass', fs=sr)
+            # Use proper filter design with butterworth filters
+            sos = signal.butter(2, 100, btype='lowpass', fs=sr, output='sos')
             for i in range(audio.shape[0]):
                 if gain_db > 0:
-                    filtered = signal.filtfilt(b, a, audio[i])
+                    filtered = signal.sosfilt(sos, audio[i])
                     audio[i] = audio[i] + gain_db/12 * filtered
         
         # Mid peak (1000 Hz)
         if abs(mid_boost - 0.5) > 0.1:
             gain_db = (mid_boost - 0.5) * 12
-            b, a = signal.iirfilter(2, [800, 1200], btype='bandpass', fs=sr)
+            # Use proper filter design with butterworth filters
+            sos = signal.butter(2, [800, 1200], btype='bandpass', fs=sr, output='sos')
             for i in range(audio.shape[0]):
-                filtered = signal.filtfilt(b, a, audio[i])
+                filtered = signal.sosfilt(sos, audio[i])
                 audio[i] = audio[i] + gain_db/12 * filtered
         
         # High shelf (8000 Hz)
         if abs(high_boost - 0.5) > 0.1:
             gain_db = (high_boost - 0.5) * 12
-            b, a = signal.iirfilter(2, 8000, btype='highpass', fs=sr)
+            # Use proper filter design with butterworth filters            sos = signal.butter(2, 8000, btype='highpass', fs=sr, output='sos')
             for i in range(audio.shape[0]):
                 if gain_db > 0:
-                    filtered = signal.filtfilt(b, a, audio[i])
+                    filtered = signal.sosfilt(sos, audio[i])
                     audio[i] = audio[i] + gain_db/12 * filtered
         
         return audio
@@ -268,10 +269,10 @@ class AudioMixer:
         gain_db = presence * 6  # 0-6dB boost around 12kHz
         nyquist = sr // 2
         freq = min(12000, nyquist * 0.9)
-        b, a = signal.iirfilter(2, freq, btype='highpass', fs=sr)
+        sos = signal.butter(2, freq, btype='highpass', fs=sr, output='sos')
         
         for i in range(audio.shape[0]):
-            filtered = signal.filtfilt(b, a, audio[i])
+            filtered = signal.sosfilt(sos, audio[i])
             audio[i] = audio[i] + (gain_db/12) * filtered
         
         return audio

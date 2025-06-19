@@ -1,0 +1,19 @@
+{
+  "name": "ai-mixer-tournament-backend",
+  "version": "1.0.0",
+  "description": "Backend server for AI mixer tournament application",
+  "scripts": {
+    "start": "python backend/main.py",
+    "dev": "python backend/main.py",
+    "test": "pytest"
+  },
+  "dependencies": {
+    "fastapi": "^0.70.0",
+    "uvicorn": "^0.15.0",
+    "python-dotenv": "^0.19.2",
+    "pydantic": "^1.8.2"
+  },
+  "devDependencies": {
+    "pytest": "^6.2.5"
+  }
+}

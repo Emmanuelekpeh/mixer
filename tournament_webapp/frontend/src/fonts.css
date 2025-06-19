@@ -1,0 +1,74 @@
+/* Google Fonts imports */
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Staatliches&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
+
+/* CSS Variables */
+:root {
+  /* Fonts */
+  --font-title: 'Anton', sans-serif;
+  --font-subtitle: 'Staatliches', cursive;
+  --font-body: 'Inter', sans-serif;
+  --font-accent: 'Permanent Marker', cursive;
+  
+  /* Colors */
+  --primary-gold: #FFD700;
+  --hiphop-orange: #FF4500;
+  --text-light: #ffffff;
+  --text-dark: #333333;
+  --text-muted: #888888;
+  --text-gold: #FFD700;
+  
+  /* Backgrounds */
+  --dark-bg: #111111;
+  --light-bg: #ffffff;
+  --input-bg: #222222;
+  --input-border: #333333;
+  
+  /* Buttons */
+  --button-primary: #FF4500;
+  --button-hover: #FF6347;
+  --primary-accent: #1E90FF;
+  --primary-accent-light: #4169E1;
+  --primary-accent-dark: #0066CC;
+  
+  /* Glass morphism */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  
+  /* Spacing */
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-medium: 0.25s ease;
+  --transition-slow: 0.35s ease;
+}
+
+/* Base Font Styles */
+body {
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  letter-spacing: 1px;
+}
+
+button, .button {
+  font-family: var(--font-subtitle);
+  letter-spacing: 1px;
+}

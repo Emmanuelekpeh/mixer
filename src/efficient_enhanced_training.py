@@ -21,7 +21,7 @@ warnings.filterwarnings('ignore')
 
 # Import our models
 from baseline_cnn import SpectrogramDataset, BaselineCNN, EnhancedCNN, N_OUTPUTS, DEVICE, SPECTROGRAMS_FOLDER, TARGETS_FILE
-from improved_models_fixed import ImprovedEnhancedCNN, MultiScaleTransformerMixer
+from improved_models import ImprovedEnhancedCNN, MultiScaleTransformerMixer
 
 class AdvancedLoss(nn.Module):
     """Enhanced loss function with safety constraints."""
@@ -261,12 +261,11 @@ def main():
             "epochs": 25
         }
     ]
-    
-    # Add transformer if we have enough data
+      # Add transformer if we have enough data
     if len(train_loader.dataset) > 500:
         models_config.append({
             "name": "transformer_mixer",
-            "model": MultiScaleTransformerMixer(input_dim=128*251, output_dim=N_OUTPUTS),
+            "model": MultiScaleTransformerMixer(n_outputs=N_OUTPUTS),
             "lr": 1e-4,
             "epochs": 20
         })

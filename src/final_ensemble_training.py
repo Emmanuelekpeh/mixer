@@ -26,7 +26,7 @@ warnings.filterwarnings('ignore')
 
 # Import our models and utilities
 from baseline_cnn import SpectrogramDataset, BaselineCNN, EnhancedCNN, DEVICE
-from improved_models_fixed import ImprovedEnhancedCNN
+from improved_models import ImprovedEnhancedCNN
 from ensemble_training import WeightedEnsemble, AdaptiveEnsemble
 
 class ExtendedSpectralLoss(nn.Module):

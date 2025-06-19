@@ -1,0 +1,242 @@
+{
+  "LSTM Audio Mixer": {
+    "model_name": "LSTM Audio Mixer",
+    "initialization": true,
+    "forward_pass": false,
+    "output_shape": null,
+    "parameter_count": 4521227,
+    "inference_time": 0.0,
+    "memory_usage": 0.0,
+    "error_message": "Expected 2D (unbatched) or 3D (batched) input to conv1d, but got input of size: [2, 1, 128, 250]",
+    "robustness": {
+      "different_batch_sizes": [
+        {
+          "batch_size": 1,
+          "success": false,
+          "error": "Expected 2D (unbatched) or 3D (batched) input to conv1d, but got input of size: [1, 1, 128, 250]"
+        },
+        {
+          "batch_size": 4,
+          "success": false,
+          "error": "Expected 2D (unbatched) or 3D (batched) input to conv1d, but got input of size: [4, 1, 128, 250]"
+        },
+        {
+          "batch_size": 8,
+          "success": false,
+          "error": "Expected 2D (unbatched) or 3D (batched) input to conv1d, but got input of size: [8, 1, 128, 250]"
+        }
+      ],
+      "different_time_steps": [
+        {
+          "time_steps": 100,
+          "success": false,
+          "error": "Expected 2D (unbatched) or 3D (batched) input to conv1d, but got input of size: [2, 1, 128, 100]"
+        },
+        {
+          "time_steps": 250,
+          "success": false,
+          "error": "Expected 2D (unbatched) or 3D (batched) input to conv1d, but got input of size: [2, 1, 128, 250]"
+        },
+        {
+          "time_steps": 500,
+          "success": false,
+          "error": "Expected 2D (unbatched) or 3D (batched) input to conv1d, but got input of size: [2, 1, 128, 500]"
+        }
+      ],
+      "different_mel_bins": [],
+      "noise_resistance": 0.0
+    }
+  },
+  "Audio GAN Mixer": {
+    "model_name": "Audio GAN Mixer",
+    "initialization": true,
+    "forward_pass": false,
+    "output_shape": null,
+    "parameter_count": 4149963,
+    "inference_time": 0.0,
+    "memory_usage": 0.0,
+    "error_message": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [2, 1, 1, 128, 250]",
+    "robustness": {
+      "different_batch_sizes": [
+        {
+          "batch_size": 1,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [1, 1, 1, 128, 250]"
+        },
+        {
+          "batch_size": 4,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [4, 1, 1, 128, 250]"
+        },
+        {
+          "batch_size": 8,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [8, 1, 1, 128, 250]"
+        }
+      ],
+      "different_time_steps": [
+        {
+          "time_steps": 100,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [2, 1, 1, 128, 100]"
+        },
+        {
+          "time_steps": 250,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [2, 1, 1, 128, 250]"
+        },
+        {
+          "time_steps": 500,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [2, 1, 1, 128, 500]"
+        }
+      ],
+      "different_mel_bins": [],
+      "noise_resistance": 0.0
+    }
+  },
+  "VAE Audio Mixer": {
+    "model_name": "VAE Audio Mixer",
+    "initialization": true,
+    "forward_pass": false,
+    "output_shape": null,
+    "parameter_count": 808107,
+    "inference_time": 0.0,
+    "memory_usage": 0.0,
+    "error_message": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [2, 1, 1, 128, 250]",
+    "robustness": {
+      "different_batch_sizes": [
+        {
+          "batch_size": 1,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [1, 1, 1, 128, 250]"
+        },
+        {
+          "batch_size": 4,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [4, 1, 1, 128, 250]"
+        },
+        {
+          "batch_size": 8,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [8, 1, 1, 128, 250]"
+        }
+      ],
+      "different_time_steps": [
+        {
+          "time_steps": 100,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [2, 1, 1, 128, 100]"
+        },
+        {
+          "time_steps": 250,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [2, 1, 1, 128, 250]"
+        },
+        {
+          "time_steps": 500,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [2, 1, 1, 128, 500]"
+        }
+      ],
+      "different_mel_bins": [],
+      "noise_resistance": 0.0
+    }
+  },
+  "Advanced Transformer Mixer": {
+    "model_name": "Advanced Transformer Mixer",
+    "initialization": true,
+    "forward_pass": false,
+    "output_shape": null,
+    "parameter_count": 44235274,
+    "inference_time": 0.0,
+    "memory_usage": 0.0,
+    "error_message": "shape '[2, 16, 8, 40, 25]' is invalid for input of size 64000",
+    "robustness": {
+      "different_batch_sizes": [
+        {
+          "batch_size": 1,
+          "success": false,
+          "error": "shape '[1, 16, 8, 40, 25]' is invalid for input of size 32000"
+        },
+        {
+          "batch_size": 4,
+          "success": false,
+          "error": "shape '[4, 16, 8, 40, 25]' is invalid for input of size 128000"
+        },
+        {
+          "batch_size": 8,
+          "success": false,
+          "error": "shape '[8, 16, 8, 40, 25]' is invalid for input of size 256000"
+        }
+      ],
+      "different_time_steps": [
+        {
+          "time_steps": 100,
+          "success": false,
+          "error": "shape '[2, 16, 8, 40, 25]' is invalid for input of size 25600"
+        },
+        {
+          "time_steps": 250,
+          "success": false,
+          "error": "shape '[2, 16, 8, 40, 25]' is invalid for input of size 64000"
+        },
+        {
+          "time_steps": 500,
+          "success": false,
+          "error": "shape '[2, 16, 8, 40, 25]' is invalid for input of size 128000"
+        }
+      ],
+      "different_mel_bins": [],
+      "noise_resistance": 0.0
+    }
+  },
+  "ResNet Audio Mixer": {
+    "model_name": "ResNet Audio Mixer",
+    "initialization": true,
+    "forward_pass": false,
+    "output_shape": null,
+    "parameter_count": 19238648,
+    "inference_time": 0.0,
+    "memory_usage": 0.0,
+    "error_message": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [2, 1, 1, 128, 250]",
+    "robustness": {
+      "different_batch_sizes": [
+        {
+          "batch_size": 1,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [1, 1, 1, 128, 250]"
+        },
+        {
+          "batch_size": 4,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [4, 1, 1, 128, 250]"
+        },
+        {
+          "batch_size": 8,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [8, 1, 1, 128, 250]"
+        }
+      ],
+      "different_time_steps": [
+        {
+          "time_steps": 100,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [2, 1, 1, 128, 100]"
+        },
+        {
+          "time_steps": 250,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [2, 1, 1, 128, 250]"
+        },
+        {
+          "time_steps": 500,
+          "success": false,
+          "error": "Expected 3D (unbatched) or 4D (batched) input to conv2d, but got input of size: [2, 1, 1, 128, 500]"
+        }
+      ],
+      "different_mel_bins": [],
+      "noise_resistance": 0.0
+    }
+  }
+}

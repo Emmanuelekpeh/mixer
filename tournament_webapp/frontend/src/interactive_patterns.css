@@ -1,0 +1,561 @@
+/* Interactive Silver Patterns CSS - Optimized for Performance */
+
+/* 
+ * OPTIMIZATION APPROACH:
+ * 1. Use transform: translateX/Y instead of rotate/scale when possible
+ * 2. Limit simultaneous animations
+ * 3. Reduce repaints through selective property animations
+ * 4. Add prefers-reduced-motion support
+ */
+
+/* Enhanced Pattern Animations - GPU accelerated version */
+@keyframes stringsVibration {
+  0% {
+    transform: translateY(calc(-1px * var(--pattern-intensity, 1)));
+    opacity: var(--pattern-opacity-base);
+  }
+  25% {
+    transform: translateY(calc(3px * var(--pattern-intensity, 1)));
+    opacity: var(--pattern-opacity-base);
+  }
+  50% {
+    transform: translateY(calc(-2px * var(--pattern-intensity, 1)));
+    opacity: var(--pattern-opacity-base);
+  }
+  75% {
+    transform: translateY(calc(1px * var(--pattern-intensity, 1)));
+    opacity: var(--pattern-opacity-base);
+  }
+  100% {
+    transform: translateY(calc(-1px * var(--pattern-intensity, 1)));
+    opacity: var(--pattern-opacity-base);
+  }
+}
+
+@keyframes pulseStrings {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 2% 2%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes drumPadPulse {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(calc(-2px * var(--pattern-intensity, 1)));
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Add efficient GPU-accelerated animations */
+@keyframes efficientPulse {
+  0% {
+    transform: translateZ(0);
+  }
+  50% {
+    transform: translateZ(0) translateY(calc(-1px * var(--pattern-intensity, 1)));
+  }
+  100% {
+    transform: translateZ(0);
+  }
+}
+
+/* Dynamic procedural pattern variations - optimized base styles */
+[class*="pattern-variation-"] .bg-pattern-13::before,
+[class*="pattern-variation-"] .bg-pattern-11::before,
+[class*="pattern-variation-"] .bg-pattern-12::before,
+[class*="pattern-variation-"] .bg-pattern-9::before,
+[class*="pattern-variation-"] .bg-pattern-10::before {
+  animation-delay: var(--pattern-anim-delay, 0s);
+  animation-duration: var(--pattern-anim-duration, 60s);
+  opacity: var(--pattern-opacity-base, 0.3);
+  transform-origin: center;
+  z-index: 3; /* ensure pattern is above other elements */
+  will-change: transform, opacity; /* Hint to browser to optimize these properties */
+}
+
+/* Ensure proper layering for all elements */
+.sc-dExYaf {
+  position: relative;
+  z-index: 10; /* Content must be above patterns */
+}
+
+/* Optimize hover effects to trigger less frequently */
+body:hover [class*="pattern-variation-"]::after {
+  animation-play-state: running;
+  animation-duration: calc(var(--pattern-anim-duration) * 0.8); /* Speed up on hover */
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  [class*="pattern-variation-"] .bg-pattern-13::before,
+  [class*="pattern-variation-"] .bg-pattern-11::before,
+  [class*="pattern-variation-"] .bg-pattern-12::before,
+  [class*="pattern-variation-"] .bg-pattern-9::before,
+  [class*="pattern-variation-"] .bg-pattern-10::before,
+  [class*="pattern-variation-"]::after {
+    animation-duration: 0s !important; /* Disable animations */
+    transition-duration: 0s !important; /* Disable transitions */
+    animation: none !important;
+  }
+  
+  /* Still show patterns but without animation */
+  [class*="pattern-variation-"]::after {
+    opacity: 0.2 !important;
+    transform: none !important;
+  }
+}
+
+/* Mobile performance optimizations */
+@media (max-width: 768px) {
+  [class*="pattern-variation-"]::after {
+    display: none; /* Remove the largest overlay on mobile */
+  }
+  
+  [class*="pattern-variation-"] .bg-pattern-13::before,
+  [class*="pattern-variation-"] .bg-pattern-11::before,
+  [class*="pattern-variation-"] .bg-pattern-12::before,
+  [class*="pattern-variation-"] .bg-pattern-9::before,
+  [class*="pattern-variation-"] .bg-pattern-10::before {
+    animation-duration: calc(var(--pattern-anim-duration, 60s) * 2); /* Slow down animations on mobile */
+    opacity: calc(var(--pattern-opacity-base, 0.3) * 0.8); /* Slightly reduce opacity */
+    background-size: 150% 150% !important; /* Simplify pattern for mobile */
+  }
+}
+
+/* Make sure patterns show through properly */
+body {
+  overflow-x: hidden;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Optimized large-scale patterns with better performance but more intricate details */
+[class*="pattern-variation-"]::after {
+  content: '';
+  position: absolute;
+  top: -20%; 
+  left: -20%;
+  width: 140%; 
+  height: 140%;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.4; /* Increased opacity for more visibility */
+  transform: translateZ(0); /* Force GPU acceleration */
+  animation: efficientPatternFloat 30s ease-in-out infinite alternate;
+  animation-play-state: var(--pattern-play-state, paused);
+  
+  /* Create intricate details with SVG-based background */
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.15'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Mobile and low-performance devices - add pattern but don't animate */
+@media (max-width: 768px), (max-height: 500px) {
+  [class*="pattern-variation-"]::after {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    animation: none;
+    background-size: 200% 200% !important;
+  }
+}
+
+/* More efficient animation that only uses translateX/Y */
+@keyframes efficientPatternFloat {
+  0% {
+    transform: translateZ(0) translateX(0) translateY(0);
+  }
+  100% {
+    transform: translateZ(0) translateX(calc(5px * var(--pattern-intensity, 1))) translateY(calc(5px * var(--pattern-intensity, 1)));
+  }
+}
+
+/* String-like vertical patterns */
+.pattern-variation-1 .bg-pattern-13::before,
+.pattern-variation-1 .bg-pattern-11::before,
+.pattern-variation-1 .bg-pattern-12::before,
+.pattern-variation-1 .bg-pattern-9::before,
+.pattern-variation-1 .bg-pattern-10::before {
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(60, 60, 60, 0.25) 1px,
+    transparent 1px,
+    transparent 20px,
+    rgba(60, 60, 60, 0.25) 20px,
+    rgba(90, 90, 90, 0.35) 21px,
+    transparent 22px,
+    transparent 40px
+  );
+  animation: stringsVibration var(--pattern-anim-duration, 60s) ease-in-out infinite;
+}
+
+.pattern-variation-1::after {
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(60, 60, 60, 0.2) 1px,
+    transparent 1px,
+    transparent 100px,
+    rgba(60, 60, 60, 0.2) 100px,
+    rgba(90, 90, 90, 0.25) 101px,
+    transparent 102px,
+    transparent 200px
+  );
+}
+
+/* Drum pad-like circular patterns */
+.pattern-variation-2 .bg-pattern-13::before,
+.pattern-variation-2 .bg-pattern-11::before,
+.pattern-variation-2 .bg-pattern-12::before,
+.pattern-variation-2 .bg-pattern-9::before,
+.pattern-variation-2 .bg-pattern-10::before {
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(80, 80, 80, 0.3) 0%, transparent 20%),
+    radial-gradient(circle at 75% 25%, rgba(80, 80, 80, 0.3) 0%, transparent 20%),
+    radial-gradient(circle at 25% 75%, rgba(80, 80, 80, 0.3) 0%, transparent 20%),
+    radial-gradient(circle at 75% 75%, rgba(80, 80, 80, 0.3) 0%, transparent 20%),
+    radial-gradient(circle at 50% 50%, rgba(90, 90, 90, 0.25) 0%, transparent 30%);
+  animation: drumPadPulse var(--pattern-anim-duration, 60s) ease-in-out infinite;
+}
+
+.pattern-variation-2::after {
+  background-image: 
+    radial-gradient(circle at 30% 30%, rgba(60, 60, 60, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 70% 30%, rgba(60, 60, 60, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 30% 70%, rgba(60, 60, 60, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(60, 60, 60, 0.15) 0%, transparent 40%);
+}
+
+/* Wave patterns */
+.pattern-variation-3 .bg-pattern-13::before,
+.pattern-variation-3 .bg-pattern-11::before,
+.pattern-variation-3 .bg-pattern-12::before,
+.pattern-variation-3 .bg-pattern-9::before,
+.pattern-variation-3 .bg-pattern-10::before {
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      rgba(80, 80, 80, 0.25) 0px,
+      rgba(80, 80, 80, 0.25) 2px,
+      transparent 2px,
+      transparent 4px
+    ),
+    repeating-linear-gradient(
+      135deg,
+      rgba(80, 80, 80, 0.25) 0px,
+      rgba(80, 80, 80, 0.25) 2px,
+      transparent 2px,
+      transparent 4px
+    );
+  background-size: 200% 200%;
+  animation: pulseStrings var(--pattern-anim-duration, 60s) ease-in-out infinite;
+}
+
+.pattern-variation-3::after {
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      rgba(70, 70, 70, 0.15) 0px,
+      rgba(70, 70, 70, 0.15) 10px,
+      transparent 10px,
+      transparent 30px
+    ),
+    repeating-linear-gradient(
+      135deg,
+      rgba(70, 70, 70, 0.15) 0px,
+      rgba(70, 70, 70, 0.15) 10px,
+      transparent 10px,
+      transparent 30px
+    );
+  animation: megaWave 25s infinite alternate ease-in-out;
+}
+
+@keyframes megaWave {
+  0% {
+    background-position: 0% 0%, 0% 0%;
+    background-size: 200% 200%;
+  }
+  100% {
+    background-position: 200% 200%, 200% 200%;
+    background-size: 180% 180%;
+  }
+}
+
+/* Frequency visualizer patterns */
+.pattern-variation-4 .bg-pattern-13::before,
+.pattern-variation-4 .bg-pattern-11::before,
+.pattern-variation-4 .bg-pattern-12::before,
+.pattern-variation-4 .bg-pattern-9::before,
+.pattern-variation-4 .bg-pattern-10::before {
+  background-image: 
+    linear-gradient(90deg, transparent 50%, rgba(80, 80, 80, 0.3) 50%),
+    repeating-linear-gradient(
+      to right,
+      transparent,
+      transparent 10px,
+      rgba(60, 60, 60, 0.3) 10px,
+      rgba(60, 60, 60, 0.3) 12px,
+      transparent 12px,
+      transparent 15px,
+      rgba(60, 60, 60, 0.2) 15px,
+      rgba(60, 60, 60, 0.2) 18px,
+      transparent 18px,
+      transparent 21px,
+      rgba(60, 60, 60, 0.25) 21px,
+      rgba(60, 60, 60, 0.25) 24px
+    );
+  animation: stringsVibration calc(var(--pattern-anim-duration, 60s) / 2) ease-in-out infinite;
+  background-size: 100% 100%, 100% 100%;
+}
+
+.pattern-variation-4::after {
+  background-image: 
+    linear-gradient(90deg, transparent 30%, rgba(80, 80, 80, 0.15) 30%, transparent 70%),
+    repeating-linear-gradient(
+      to right,
+      transparent,
+      transparent 50px,
+      rgba(60, 60, 60, 0.15) 50px,
+      rgba(60, 60, 60, 0.15) 60px,
+      transparent 60px,
+      transparent 80px,
+      rgba(60, 60, 60, 0.1) 80px,
+      rgba(60, 60, 60, 0.1) 90px
+    );
+  animation: frequencyWave 40s infinite alternate linear;
+}
+
+@keyframes frequencyWave {
+  0% {
+    background-position: 0% 0%, 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%, -200% 0%;
+  }
+}
+
+/* Crosshatch patterns */
+.pattern-variation-5 .bg-pattern-13::before,
+.pattern-variation-5 .bg-pattern-11::before,
+.pattern-variation-5 .bg-pattern-12::before,
+.pattern-variation-5 .bg-pattern-9::before,
+.pattern-variation-5 .bg-pattern-10::before {
+  background-image: 
+    linear-gradient(45deg, rgba(70, 70, 70, 0.3) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(70, 70, 70, 0.3) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(70, 70, 70, 0.3) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(70, 70, 70, 0.3) 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+  animation: pulseStrings calc(var(--pattern-anim-duration, 60s) * 0.8) ease-in-out infinite;
+}
+
+.pattern-variation-5::after {
+  background-image: 
+    linear-gradient(45deg, rgba(60, 60, 60, 0.15) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(60, 60, 60, 0.15) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(60, 60, 60, 0.15) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(60, 60, 60, 0.15) 75%);
+  background-size: 100px 100px;
+  background-position: 0 0, 0 50px, 50px -50px, -50px 0;
+  animation: crosshatchFloat 40s infinite alternate ease-in-out;
+}
+
+@keyframes crosshatchFloat {
+  0% {
+    background-size: 100px 100px;
+    transform: rotate(-1deg);
+  }
+  100% {
+    background-size: 120px 120px;
+    transform: rotate(1deg);
+  }
+}
+
+/* Pixel wave patterns */
+.pattern-variation-6 .bg-pattern-13::before,
+.pattern-variation-6 .bg-pattern-11::before,
+.pattern-variation-6 .bg-pattern-12::before,
+.pattern-variation-6 .bg-pattern-9::before,
+.pattern-variation-6 .bg-pattern-10::before {
+  background-image: 
+    repeating-linear-gradient(
+      to right,
+      rgba(70, 70, 70, 0.3) 2px,
+      transparent 2px,
+      transparent 4px,
+      rgba(70, 70, 70, 0.2) 4px,
+      rgba(70, 70, 70, 0.2) 6px,
+      transparent 6px,
+      transparent 8px,
+      rgba(70, 70, 70, 0.3) 8px,
+      rgba(70, 70, 70, 0.3) 10px,
+      transparent 10px,
+      transparent 12px
+    );
+  animation: stringsVibration var(--pattern-anim-duration, 60s) ease-in-out infinite;
+}
+
+.pattern-variation-6::after {
+  background-image: 
+    repeating-linear-gradient(
+      to right,
+      rgba(60, 60, 60, 0.2) 5px,
+      transparent 5px,
+      transparent 15px,
+      rgba(60, 60, 60, 0.15) 15px,
+      rgba(60, 60, 60, 0.15) 20px,
+      transparent 20px,
+      transparent 30px
+    );
+  background-size: 200% 200%;
+  animation: pixelWaveFloat 30s infinite alternate linear;
+}
+
+@keyframes pixelWaveFloat {
+  0% {
+    background-position: 0% 0%;
+    opacity: 0.2;
+  }
+  100% {
+    background-position: 200% 0%;
+    opacity: 0.4;
+  }
+}
+
+/* Radial pulse patterns */
+.pattern-variation-7 .bg-pattern-13::before,
+.pattern-variation-7 .bg-pattern-11::before,
+.pattern-variation-7 .bg-pattern-12::before,
+.pattern-variation-7 .bg-pattern-9::before,
+.pattern-variation-7 .bg-pattern-10::before {
+  background-image: radial-gradient(
+    circle at 50% 50%,
+    rgba(70, 70, 70, 0.15) 0%,
+    rgba(70, 70, 70, 0.25) 25%,
+    rgba(70, 70, 70, 0.15) 50%,
+    rgba(70, 70, 70, 0.3) 75%,
+    rgba(70, 70, 70, 0.15) 100%
+  );
+  background-size: 300% 300%;
+  background-position: center center;
+  animation: pulseStrings var(--pattern-anim-duration, 60s) ease-in-out infinite;
+}
+
+.pattern-variation-7::after {
+  background-image: radial-gradient(
+    circle at 50% 50%,
+    rgba(60, 60, 60, 0.05) 0%,
+    rgba(60, 60, 60, 0.1) 40%,
+    rgba(60, 60, 60, 0.05) 60%,
+    rgba(60, 60, 60, 0.15) 80%,
+    rgba(60, 60, 60, 0.05) 100%
+  );
+  background-size: 200% 200%;
+  animation: megaRadialPulse 35s infinite alternate ease-in-out;
+}
+
+@keyframes megaRadialPulse {
+  0% {
+    background-size: 150% 150%;
+    background-position: center center;
+  }
+  100% {
+    background-size: 250% 250%;
+    background-position: center center;
+  }
+}
+
+/* Grid pulse patterns */
+.pattern-variation-8 .bg-pattern-13::before,
+.pattern-variation-8 .bg-pattern-11::before,
+.pattern-variation-8 .bg-pattern-12::before,
+.pattern-variation-8 .bg-pattern-9::before,
+.pattern-variation-8 .bg-pattern-10::before {
+  background-image: 
+    linear-gradient(to right, rgba(70, 70, 70, 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(70, 70, 70, 0.3) 1px, transparent 1px);
+  background-size: 30px 30px;
+  animation: drumPadPulse calc(var(--pattern-anim-duration, 60s) * 0.7) ease-in-out infinite;
+}
+
+.pattern-variation-8::after {
+  background-image: 
+    linear-gradient(to right, rgba(60, 60, 60, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(60, 60, 60, 0.15) 1px, transparent 1px);
+  background-size: 100px 100px;
+  animation: megaGridPulse 25s infinite alternate ease-in-out;
+}
+
+@keyframes megaGridPulse {
+  0% {
+    background-size: 100px 100px;
+    transform: scale(1) rotate(0deg);
+  }
+  100% {
+    background-size: 130px 130px;
+    transform: scale(1.05) rotate(1deg);
+  }
+}
+
+/* Circular wave patterns */
+.pattern-variation-9 .bg-pattern-13::before,
+.pattern-variation-9 .bg-pattern-11::before,
+.pattern-variation-9 .bg-pattern-12::before,
+.pattern-variation-9 .bg-pattern-9::before,
+.pattern-variation-9 .bg-pattern-10::before {
+  background-image: 
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      transparent,
+      transparent 20px,
+      rgba(70, 70, 70, 0.2) 20px,
+      rgba(70, 70, 70, 0.2) 22px,
+      transparent 22px,
+      transparent 30px,
+      rgba(70, 70, 70, 0.2) 30px,
+      rgba(70, 70, 70, 0.2) 32px,
+      transparent 32px,
+      transparent 40px
+    );
+  background-size: 400px 400px;
+  animation: drumPadPulse var(--pattern-anim-duration, 60s) ease-in-out infinite;
+}
+
+.pattern-variation-9::after {
+  background-image: 
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      transparent,
+      transparent 100px,
+      rgba(60, 60, 60, 0.1) 100px,
+      rgba(60, 60, 60, 0.1) 110px,
+      transparent 110px,
+      transparent 150px,
+      rgba(60, 60, 60, 0.1) 150px,
+      rgba(60, 60, 60, 0.1) 160px
+    );
+  background-size: 600px 600px;
+  animation: megaCirclePulse 45s infinite alternate ease-in-out;
+}
+
+@keyframes megaCirclePulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0.4;
+  }
+}

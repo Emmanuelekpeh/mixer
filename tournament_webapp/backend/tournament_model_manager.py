@@ -323,6 +323,55 @@ class TournamentModelManager:
             model_instance.clear_cache()
         
         logger.info("All caches cleared")
+    
+    def update_model_metrics(self, winner_id: str, loser_id: str, confidence: float = 0.7):
+        """
+        Update model performance metrics based on battle results
+        
+        Args:
+            winner_id: ID of the winning model
+            loser_id: ID of the losing model  
+            confidence: Confidence score of the victory (0-1)
+        """
+        try:
+            # Find the models in our available models list
+            winner_model = next((m for m in self.available_models if m["id"] == winner_id), None)
+            loser_model = next((m for m in self.available_models if m["id"] == loser_id), None)
+            
+            if not winner_model or not loser_model:
+                logger.warning(f"Could not find models for metric update: winner={winner_id}, loser={loser_id}")
+                return
+            
+            # Update performance metrics (simple ELO-like system)
+            if "performance_metrics" not in winner_model:
+                winner_model["performance_metrics"] = {"wins": 0, "losses": 0, "elo": 1200}
+            if "performance_metrics" not in loser_model:
+                loser_model["performance_metrics"] = {"wins": 0, "losses": 0, "elo": 1200}
+            
+            # Update win/loss counts
+            winner_model["performance_metrics"]["wins"] += 1
+            loser_model["performance_metrics"]["losses"] += 1
+            
+            # Simple ELO calculation
+            winner_elo = winner_model["performance_metrics"]["elo"]
+            loser_elo = loser_model["performance_metrics"]["elo"]
+            
+            # Expected scores
+            expected_winner = 1 / (1 + 10 ** ((loser_elo - winner_elo) / 400))
+            expected_loser = 1 / (1 + 10 ** ((winner_elo - loser_elo) / 400))
+            
+            # K-factor (higher for more volatile ratings)
+            k_factor = 32 * confidence
+            
+            # Update ELO ratings
+            winner_model["performance_metrics"]["elo"] = winner_elo + k_factor * (1 - expected_winner)
+            loser_model["performance_metrics"]["elo"] = loser_elo + k_factor * (0 - expected_loser)
+            
+            logger.info(f"Updated metrics: {winner_id} ELO: {winner_model['performance_metrics']['elo']:.0f}, "
+                       f"{loser_id} ELO: {loser_model['performance_metrics']['elo']:.0f}")
+            
+        except Exception as e:
+            logger.error(f"Error updating model metrics: {str(e)}")
 
 
 # Example usage

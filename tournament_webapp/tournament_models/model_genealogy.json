@@ -77,6 +77,32 @@
         "round": 2
       },
       "timestamp": "2025-06-12T12:14:09.692944"
+    },
+    "a294094e-a843-418c-be5b-fb84546c2915": {
+      "parents": [
+        "c7ec77ad-972a-4178-a53b-3f0223ceaa9d",
+        "e7965382-ac53-4507-bf7c-2afa6cbf8b5b"
+      ],
+      "evolution_method": null,
+      "generation": 1,
+      "context": {
+        "vote_confidence": 0.6490132137972405,
+        "round": 1
+      },
+      "timestamp": "2025-06-18T07:44:49.089562"
+    },
+    "e83ce826-5dc4-4cdd-83e6-f92dcd4bd5c7": {
+      "parents": [
+        "a294094e-a843-418c-be5b-fb84546c2915",
+        "c7ec77ad-972a-4178-a53b-3f0223ceaa9d"
+      ],
+      "evolution_method": "weight_blending",
+      "generation": 2,
+      "context": {
+        "vote_confidence": 0.8649063456722631,
+        "round": 2
+      },
+      "timestamp": "2025-06-18T07:44:49.215805"
     }
   },
   "architecture_stats": {}

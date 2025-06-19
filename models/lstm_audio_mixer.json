@@ -1,0 +1,43 @@
+{
+  "name": "LSTM Audio Mixer",
+  "nickname": "LSTM Mixer",
+  "architecture": "LSTM",
+  "created_at": "2025-06-18T01:20:27.313798",
+  "description": "LSTM-based audio mixer with specialized temporal_processing, dynamic_mixing, sequential_analysis",
+  "generation": 1,
+  "tier": "Professional",
+  "elo_rating": 1400,
+  "capabilities": {
+    "temporal_modeling": 0.95,
+    "sequence_memory": 0.9,
+    "dynamic_adaptation": 0.85,
+    "spectral_analysis": 0.75,
+    "harmonic_enhancement": 0.7
+  },
+  "specializations": [
+    "temporal_processing",
+    "dynamic_mixing",
+    "sequential_analysis"
+  ],
+  "preferred_genres": [
+    "electronic",
+    "ambient",
+    "experimental"
+  ],
+  "signature_techniques": [
+    "temporal_smoothing",
+    "dynamic_gating",
+    "memory_retention"
+  ],
+  "performance_metrics": {
+    "parameter_count": 4521227,
+    "input_shape": [
+      2,
+      128,
+      250
+    ],
+    "estimated_mae": 0.05,
+    "status": "ready_for_tournament"
+  },
+  "model_file_path": "models/lstm_audio_mixer.pth"
+}

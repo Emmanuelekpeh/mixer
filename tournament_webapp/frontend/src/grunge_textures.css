@@ -1,0 +1,144 @@
+/* Grunge Biker Gang Textures & Effects */
+
+/* Metal plate background */
+.metal-bg {
+  background-color: #1a1a1a;
+  background-image: 
+    linear-gradient(45deg, #222 25%, transparent 25%),
+    linear-gradient(-45deg, #222 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #222 75%),
+    linear-gradient(-45deg, transparent 75%, #222 75%);
+  background-size: 10px 10px;
+  background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+  position: relative;
+}
+
+.metal-bg::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* Rust texture */
+.rust-texture {
+  position: relative;
+}
+
+.rust-texture::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.15' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.1;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  background-size: 200px;
+}
+
+/* Grunge border */
+.grunge-border {
+  position: relative;
+}
+
+.grunge-border::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.35' numOctaves='3'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='10'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' fill='none' stroke='%238B0000' stroke-width='8' opacity='0.5'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Skulls background */
+.skull-bg {
+  background-color: #0a0a0a;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 20c-5.5 0-10 4.5-10 10s4.5 10 10 10 10-4.5 10-10-4.5-10-10-10zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm-2-13c-1.7 0-3 1.3-3 3s1.3 3 3 3c.6 0 1-.4 1-1s-.4-1-1-1c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1c0 .6.4 1 1 1s1-.4 1-1c0-1.7-1.3-3-3-3zm4 0c-1.7 0-3 1.3-3 3s1.3 3 3 3c.6 0 1-.4 1-1s-.4-1-1-1c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1c0 .6.4 1 1 1s1-.4 1-1c0-1.7-1.3-3-3-3zm-2 13c-1.1 0-2 .9-2 2v1c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-1c0-1.1-.9-2-2-2z' fill='%23222222' fill-opacity='0.15'%3E%3C/path%3E%3C/svg%3E");
+  position: relative;
+}
+
+/* Racing stripes */
+.racing-stripes {
+  position: relative;
+}
+
+.racing-stripes::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 20px,
+    #8B0000 20px,
+    #8B0000 40px
+  );
+  opacity: 0.2;
+  z-index: -1;
+}
+
+/* Chain link border */
+.chain-border {
+  position: relative;
+  border: 16px solid transparent;
+}
+
+.chain-border::before {
+  content: '';
+  position: absolute;
+  top: -16px;
+  left: -16px;
+  right: -16px;
+  bottom: -16px;
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cellipse cx='10' cy='20' rx='8' ry='4' stroke='%23444' stroke-width='1.5' fill='%23222' transform='rotate(0 10 20)' /%3E%3Cellipse cx='20' cy='30' rx='8' ry='4' stroke='%23444' stroke-width='1.5' fill='%23222' transform='rotate(90 20 30)' /%3E%3Cellipse cx='30' cy='20' rx='8' ry='4' stroke='%23444' stroke-width='1.5' fill='%23222' transform='rotate(0 30 20)' /%3E%3Cellipse cx='20' cy='10' rx='8' ry='4' stroke='%23444' stroke-width='1.5' fill='%23222' transform='rotate(90 20 10)' /%3E%3C/svg%3E");
+  background-repeat: round;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Riveted metal */
+.riveted-metal {
+  background-color: #222;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  position: relative;
+}
+
+.riveted-metal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 10px 10px, rgba(0,0,0,0.2) 2px, transparent 2px),
+    radial-gradient(circle at 10px 10px, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+/* Metal text with embossed effect */
+.embossed-metal-text {
+  color: #777;
+  text-shadow: 
+    0px 1px 0px rgba(255,255,255,0.1),
+    0px -1px 0px rgba(0,0,0,0.6);
+  letter-spacing: 1px;
+}
