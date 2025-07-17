@@ -4,6 +4,9 @@ set -e
 echo "Starting application server..."
 python -c "import sys; sys.path.append('/app'); from tournament_webapp.backend.health_check import verify_system; verify_system()"
 
+# Install uvicorn if not already installed
+pip install uvicorn
+
 # Run the application using python directly
 cd /app
 python -c "
