@@ -48,9 +48,9 @@ ENV WORKERS=4
 ENV PYTHONUNBUFFERED=1
 
 # Configure Gunicorn for production with improved error handling
-CMD cd tournament_webapp/backend && \
-    echo "Starting application server..." && \
-    python -c "import sys; sys.path.append('/app'); from health_check import verify_system; verify_system()" && \
+CMD bash -c "cd tournament_webapp/backend && \
+    echo 'Starting application server...' && \
+    python -c 'import sys; sys.path.append(\"/app\"); from health_check import verify_system; verify_system()' && \
     gunicorn tournament_api:app \
     --workers $WORKERS \
     --worker-class uvicorn.workers.UvicornWorker \
@@ -58,4 +58,4 @@ CMD cd tournament_webapp/backend && \
     --access-logfile - \
     --error-logfile - \
     --log-level $LOG_LEVEL \
-    --timeout 120
+    --timeout 120"
