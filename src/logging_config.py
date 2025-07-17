@@ -13,13 +13,32 @@ import logging
 from typing import Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
-from pythonjsonlogger.jsonlogger import JsonFormatter
 
-from src.environment_config import monitoring_config, is_production
+# JSON logging is handled by our custom formatter
+JSON_LOGGING_AVAILABLE = True
 
-# Get logging configuration
-LOG_CONFIG = monitoring_config()
-LOG_LEVEL = LOG_CONFIG["log_level"]
+# JSON is part of Python standard library, so this should always be available
+# But we keep the pattern for consistency with other optional imports
+try:
+    import json
+    JSON_LOGGING_AVAILABLE = True
+except ImportError:
+    JSON_LOGGING_AVAILABLE = False
+
+try:
+    from src.environment_config import monitoring_config, is_production
+    # Get logging configuration
+    LOG_CONFIG = monitoring_config()
+    LOG_LEVEL = LOG_CONFIG["log_level"]
+except ImportError:
+    # Fallback configuration if environment_config is not available
+    LOG_LEVEL = "INFO"
+    LOG_CONFIG = {"log_level": "INFO"}
+
+# Fallback is_production function if not imported
+if 'is_production' not in globals():
+    def is_production():
+        return os.getenv("ENVIRONMENT", "development") == "production"
 
 # Log directory
 LOG_DIR = Path("logs")
@@ -29,36 +48,30 @@ if not LOG_DIR.exists():
 # Log file path
 LOG_FILE = LOG_DIR / "application.log"
 
-# Create custom JSON formatter with additional fields
-class CustomJsonFormatter(JsonFormatter):
-    """Custom JSON formatter with additional fields"""
+# Create simple JSON formatter without external dependencies
+class SimpleJsonFormatter(logging.Formatter):
+    """Simple JSON formatter without external dependencies"""
     
-    def add_fields(self, log_record: Dict[str, Any], record: logging.LogRecord, message_dict: Dict[str, Any]) -> None:
-        """Add additional fields to the log record"""
-        super().add_fields(log_record, record, message_dict)
+    def format(self, record: logging.LogRecord) -> str:
+        """Format log record as JSON"""
+        log_data = {
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "environment": os.getenv("ENVIRONMENT", "development"),
+            "process": record.process,
+            "thread": record.thread,
+            "file": record.pathname,
+            "line": record.lineno,
+            "version": os.getenv("APP_VERSION", "unknown")
+        }
         
-        # Add timestamp in ISO format
-        log_record["timestamp"] = datetime.utcnow().isoformat() + "Z"
+        # Add exception info if present
+        if record.exc_info:
+            log_data["exception"] = self.formatException(record.exc_info)
         
-        # Add log level name
-        log_record["level"] = record.levelname
-        
-        # Add logger name
-        log_record["logger"] = record.name
-        
-        # Add environment information
-        log_record["environment"] = os.getenv("ENVIRONMENT", "development")
-        
-        # Add process and thread information
-        log_record["process"] = record.process
-        log_record["thread"] = record.thread
-        
-        # Add file and line information
-        log_record["file"] = record.pathname
-        log_record["line"] = record.lineno
-        
-        # Add application version if available
-        log_record["version"] = os.getenv("APP_VERSION", "unknown")
+        return json.dumps(log_data, ensure_ascii=False)
 
 
 # Initialize logging
@@ -78,10 +91,7 @@ def initialize_logging(log_level: Optional[str] = None, log_file: Optional[str] 
     log_path = log_file or LOG_FILE
     
     # Create formatters
-    json_formatter = CustomJsonFormatter(
-        "%(timestamp)s %(level)s %(name)s %(message)s",
-        json_ensure_ascii=False
-    )
+    json_formatter = SimpleJsonFormatter()
     
     console_formatter = logging.Formatter(
         "[%(levelname)s] %(asctime)s - %(name)s - %(message)s"
