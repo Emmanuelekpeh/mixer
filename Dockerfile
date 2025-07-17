@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy requirements first for better layer caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir --user -r requirements.txt && \
+    pip install --no-cache-dir --user gunicorn uvicorn
 
 # Create a clean production image with only runtime dependencies
 FROM python:3.10-slim
