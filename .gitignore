@@ -107,3 +107,32 @@ data/val/
 *.hdf5
 *.pkl
 *.pickle
+
+# Dataset directories (exclude large datasets)
+raw/
+musdb18/
+fma_small/
+fma_medium/
+fma_large/
+data/musdb18/
+data/fma_small/
+
+# Training results and logs
+training_results/
+logs/
+*.log
+
+# Large model files (keep only essential deployment models)
+models/*.pth
+!models/*_best.pth
+models/deployment/
+dual_path_results/
+dual_path_test_results/
+enhanced_results/
+mixed_outputs/
+
+# Compressed model files
+*.pth.gz
+
+# Kiro IDE files
+.kiro/

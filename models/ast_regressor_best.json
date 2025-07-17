@@ -1,0 +1,12 @@
+{
+  "name": "Ast Regressor Best",
+  "architecture": "cnn",
+  "description": "CNN model for audio mixing",
+  "created_at": "2025-07-17T08:18:42.131097",
+  "file_path": "models\\ast_regressor_best.pth",
+  "file_size_mb": 0.806950569152832,
+  "specializations": [],
+  "performance_metrics": {},
+  "parameters": {},
+  "model_info": {}
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Lstm Mixer Best",
+  "architecture": "lstm",
+  "description": "LSTM model for audio mixing",
+  "created_at": "2025-07-17T08:18:42.306784",
+  "file_path": "models\\lstm_mixer_best.pth",
+  "file_size_mb": 15.4497709274292,
+  "specializations": [
+    "temporal_processing",
+    "sequence_aware"
+  ],
+  "performance_metrics": {},
+  "parameters": {},
+  "model_info": {}
+}

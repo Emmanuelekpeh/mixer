@@ -1,0 +1,12 @@
+{
+  "name": "Dual Path Hybrid Best",
+  "architecture": "cnn",
+  "description": "CNN model for audio mixing",
+  "created_at": "2025-07-17T08:18:42.251513",
+  "file_path": "models\\dual_path_hybrid_best.pth",
+  "file_size_mb": 32.121774673461914,
+  "specializations": [],
+  "performance_metrics": {},
+  "parameters": {},
+  "model_info": {}
+}

@@ -209,6 +209,35 @@ DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
 TOURNAMENTS_DIR = DATA_DIR / "tournaments"
 AUDIO_DIR = DATA_DIR / "audio"
 
+# Health check endpoint for deployment monitoring
+@app.get("/health")
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint for deployment platforms"""
+    try:
+        # Check database connection
+        db_stats = get_database_stats()
+        
+        # Check if models are loaded
+        models_available = db_stats.get('ai_models', 0) > 0
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "database": "connected",
+            "models_available": models_available,
+            "total_models": db_stats.get('ai_models', 0),
+            "version": "2.0.0",
+            "environment": os.getenv("ENVIRONMENT", "development")
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat(),
+            "version": "2.0.0"
+        }
+
 # Ensure directories exist
 DATA_DIR.mkdir(exist_ok=True)
 TOURNAMENTS_DIR.mkdir(exist_ok=True)
@@ -589,19 +618,26 @@ class SimpleTournamentEngine:
     
     @property
     def evolution_engine(self):
-        class DummyEvolutionEngine:
-            def __init__(self, models):
-                self.champion_models = models
-                self.genealogy = {
-                    "models": models,
-                    "statistics": {
-                        "total_evolved": len(models),
-                        "by_architecture": {"cnn": 3, "hybrid": 2}
-                    },
-                    "evolution_tree": {}
-                }
-        
-        return DummyEvolutionEngine(self.get_model_list())
+        """Return an EvolutionEngine instance built from current models.
+
+        The engine maintains ELO scores and genealogy information that
+        analytics endpoints rely on.  To avoid heavy initialization on
+        every call, we memoize the instance on first access and update
+        its model list when subsequent calls detect new models.
+        """
+
+        # Lazy import to avoid circular dependencies at module load time
+        from evolution_engine import EvolutionEngine  # pylint: disable=import-error
+
+        # Memoize engine
+        if not hasattr(self, "_evolution_engine") or self._evolution_engine is None:
+            self._evolution_engine = EvolutionEngine()
+
+        # Sync engine's model roster with latest models
+        current_models = self.get_model_list()
+        self._evolution_engine.set_models(current_models)
+
+        return self._evolution_engine
 
 # Initialize the engine - using enhanced version with persistence
 tournament_engine = EnhancedTournamentEngine()
@@ -652,51 +688,71 @@ async def create_tournament_json(
         # Get available models for the tournament
         models = db_service.get_all_models()
         if len(models) < 2:
-            raise HTTPException(status_code=400, detail="Need at least 2 models for tournament")        # Create tournament pairs data - SIMPLE 5-ROUND STRUCTURE
-        import random
-        selected_models = random.sample(models, min(6, len(models)))  # Need 6 models for 5 rounds
+            raise HTTPException(status_code=400, detail="Need at least 2 models for tournament")        # Create tournament pairs data - IMPROVED BRACKET TOURNAMENT
+        from improved_tournament_structure import ImprovedTournamentStructure
         
-        # Create exactly 5 pairs for 5 rounds (one pair per round)
+        # Convert models to format expected by tournament structure
+        model_list = []
+        for model in models:
+            model_list.append({
+                "id": model.id,
+                "name": model.name,
+                "architecture": model.architecture,
+                "elo_rating": model.elo_rating,
+                "tier": model.tier,
+                "is_active": model.is_active
+            })
+        
+        # Create bracket tournament structure (8 models, 7 battles, 3 rounds)
+        tournament_structure = ImprovedTournamentStructure(model_list)
+        bracket_data = tournament_structure.create_bracket_tournament(8)
+        
+        # Convert bracket pairs to API format
         pairs_data = []
-        for round_num in range(1, min(6, len(selected_models))):  # Rounds 1-5
-            if round_num < len(selected_models):
-                model_a = selected_models[0] if round_num == 1 else selected_models[round_num-1]  # Winner carries forward
-                model_b = selected_models[round_num]
-                
-                pair = {
-                    "round": round_num,
-                    "model_a": {
-                        "id": model_a.id,
-                        "name": model_a.name,
-                        "nickname": model_a.nickname or model_a.name,
-                        "architecture": model_a.architecture,
-                        "elo_rating": model_a.elo_rating,
-                        "tier": model_a.tier,
-                        "generation": model_a.generation
-                    },
-                    "model_b": {
-                        "id": model_b.id,
-                        "name": model_b.name,
-                        "nickname": model_b.nickname or model_b.name,
-                        "architecture": model_b.architecture,
-                        "elo_rating": model_b.elo_rating,
-                        "tier": model_b.tier,
-                        "generation": model_b.generation
-                    },
-                    "audio_a": f"/processed_audio/{tournament.id}_{model_a.id}_mix.wav",
-                    "audio_b": f"/processed_audio/{tournament.id}_{model_b.id}_mix.wav"
-                }
-                pairs_data.append(pair)        # Update tournament with pairs data
+        for i, pair in enumerate(bracket_data['pairs']):
+            model_a = pair['model_a']
+            model_b = pair['model_b']
+            
+            pair_formatted = {
+                "round": pair['round'],
+                "pair_id": pair['pair_id'],
+                "model_a": {
+                    "id": model_a['id'],
+                    "name": model_a['name'],
+                    "nickname": model_a.get('nickname', model_a['name']),
+                    "architecture": model_a['architecture'],
+                    "elo_rating": model_a['elo_rating'],
+                    "tier": model_a.get('tier', 'Challenger'),
+                    "generation": 1
+                },
+                "model_b": {
+                    "id": model_b['id'],
+                    "name": model_b['name'],
+                    "nickname": model_b.get('nickname', model_b['name']),
+                    "architecture": model_b['architecture'],
+                    "elo_rating": model_b['elo_rating'],
+                    "tier": model_b.get('tier', 'Challenger'),
+                    "generation": 1
+                },
+                "audio_a": f"/processed_audio/{tournament.id}_{model_a['id']}_mix.wav",
+                "audio_b": f"/processed_audio/{tournament.id}_{model_b['id']}_mix.wav",
+                "winner_advances_to": pair.get('winner_advances_to', 'COMPLETE')
+            }
+            pairs_data.append(pair_formatted)        # Update tournament with pairs data
         db_service.update_tournament(
             tournament.id,
             pairs_data=pairs_data,
             tournament_data={
-                "total_models": len(selected_models),                "total_pairs": len(pairs_data),
-                "mode": "5_round_elimination"
+                "total_models": bracket_data['total_models'],
+                "total_pairs": len(pairs_data),
+                "total_battles": bracket_data['total_battles'],
+                "total_rounds": bracket_data['total_rounds'],
+                "mode": "bracket_tournament",
+                "format": "single_elimination"
             }
         )
         
-        logger.info(f"🏆 5-Round Tournament created: {tournament.id} with {len(pairs_data)} total pairs")
+        logger.info(f"🏆 Bracket Tournament created: {tournament.id} with {bracket_data['total_battles']} battles in {bracket_data['total_rounds']} rounds")
         
         return JSONResponse(content={
             "success": True,

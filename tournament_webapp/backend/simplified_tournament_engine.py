@@ -753,20 +753,14 @@ class EnhancedTournamentEngine:
     
     @property
     def evolution_engine(self):
-        """Evolution engine property for API compatibility"""
-        class DummyEvolutionEngine:
-            def __init__(self, models):
-                self.champion_models = models
-                self.genealogy = {
-                    "models": models,
-                    "statistics": {
-                        "total_evolved": len(models),
-                        "by_architecture": {"cnn": 3, "hybrid": 2}
-                    },
-                    "evolution_tree": {}
-                }
-        
-        return DummyEvolutionEngine(self.models)
+        """Return a real EvolutionEngine instance built from current models."""
+        from evolution_engine import EvolutionEngine
+        try:
+            db_models = [AIModel(**m) if isinstance(m, dict) else m for m in self.models]
+            return EvolutionEngine(db_models)
+        except Exception:
+            # Fallback to simplified construction if self.models is already AIModel instances
+            return EvolutionEngine(self.models)
     
     def delete_tournament(self, tournament_id: str, user_id: Optional[str] = None) -> bool:
         """
