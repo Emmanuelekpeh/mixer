@@ -27,7 +27,9 @@ COPY . .
 
 # Create necessary directories and set permissions
 RUN mkdir -p /app/logs /app/data/mixed_outputs /app/tournament_webapp/uploads && \
-    chmod -R 755 /app/logs /app/data/mixed_outputs /app/tournament_webapp/uploads
+    chmod -R 755 /app/logs /app/data/mixed_outputs /app/tournament_webapp/uploads && \
+    # Install gunicorn and uvicorn system-wide for all users
+    pip install --no-cache-dir gunicorn uvicorn
 
 # Create non-root user for security
 RUN useradd -m appuser && \
