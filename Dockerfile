@@ -42,16 +42,20 @@ EXPOSE $PORT
 # Set environment variables
 ENV PRODUCTION=true
 ENV MODELS_DIR=/app/models/deployment
-ENV ALLOWED_ORIGINS=https://ai-mixer-tournament.onrender.com,http://localhost:3000
+ENV ALLOWED_ORIGINS=https://ai-mixer-tournament.onrender.com,https://ai-mixer-tournament.railway.app,http://localhost:3000
 ENV LOG_LEVEL=INFO
 ENV WORKERS=4
+ENV PYTHONUNBUFFERED=1
 
-# Configure Gunicorn for production
+# Configure Gunicorn for production with improved error handling
 CMD cd tournament_webapp/backend && \
+    echo "Starting application server..." && \
+    python -c "import sys; sys.path.append('/app'); from health_check import verify_system; verify_system()" && \
     gunicorn tournament_api:app \
     --workers $WORKERS \
     --worker-class uvicorn.workers.UvicornWorker \
     --bind 0.0.0.0:$PORT \
     --access-logfile - \
     --error-logfile - \
+    --log-level $LOG_LEVEL \
     --timeout 120
