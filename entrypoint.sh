@@ -5,7 +5,7 @@ echo "Starting application server..."
 python -c "import sys; sys.path.append('/app'); from tournament_webapp.backend.health_check import verify_system; verify_system()"
 
 # Install required packages if not already installed
-pip install uvicorn fastapi
+pip install uvicorn fastapi sqlalchemy
 
 # Add local bin to PATH
 export PATH=$PATH:/home/appuser/.local/bin
