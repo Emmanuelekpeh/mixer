@@ -22,14 +22,17 @@ WORKDIR /app
 COPY --from=builder /root/.local /root/.local
 ENV PATH=/root/.local/bin:$PATH
 
-# Copy the application code
+# Copy the application code and entrypoint script
 COPY . .
+COPY entrypoint.sh /app/entrypoint.sh
 
 # Create necessary directories and set permissions
 RUN mkdir -p /app/logs /app/data/mixed_outputs /app/tournament_webapp/uploads && \
     chmod -R 755 /app/logs /app/data/mixed_outputs /app/tournament_webapp/uploads && \
     # Install gunicorn and uvicorn system-wide for all users
-    pip install --no-cache-dir gunicorn uvicorn[standard]
+    pip install --no-cache-dir gunicorn uvicorn[standard] && \
+    # Make entrypoint executable
+    chmod +x /app/entrypoint.sh
 
 # Create non-root user for security
 RUN useradd -m appuser && \
@@ -50,5 +53,5 @@ ENV LOG_LEVEL=INFO
 ENV WORKERS=4
 ENV PYTHONUNBUFFERED=1
 
-# Configure Gunicorn for production with improved error handling
-CMD ["python", "-m", "uvicorn", "tournament_webapp.backend.tournament_api:app", "--host", "0.0.0.0", "--port", "8000"]
+# Configure entrypoint
+CMD ["/app/entrypoint.sh"]
