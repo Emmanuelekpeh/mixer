@@ -44,11 +44,17 @@ test/
 **/*.spec.js
 
 # Large data files
-data/musdb18.zip
+data/
+models/
+raw/
 **/*.wav
 **/*.mp3
 **/*.flac
+**/*.pth
+**/*.pt
+**/*.ckpt
 !mixed_outputs/*.wav
+!models/deployment/*.pth
 
 # Temporary files
 tmp/
