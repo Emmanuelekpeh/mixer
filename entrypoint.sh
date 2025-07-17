@@ -13,15 +13,7 @@ export PATH=$PATH:/home/appuser/.local/bin
 # Set Python path to include the app directory and backend directory
 export PYTHONPATH=/app:/app/tournament_webapp/backend
 
-# Run a simple web server for testing
+# Run the application using uvicorn
 cd /app
-python -c "
-import http.server
-import socketserver
-
-PORT = int('${PORT:-8000}')
-Handler = http.server.SimpleHTTPRequestHandler
-httpd = socketserver.TCPServer(('0.0.0.0', PORT), Handler)
-print('Serving at port', PORT)
-httpd.serve_forever()
-"
+echo "Starting uvicorn server..."
+python -m uvicorn tournament_webapp.backend.tournament_api:app --host 0.0.0.0 --port ${PORT:-8000}
