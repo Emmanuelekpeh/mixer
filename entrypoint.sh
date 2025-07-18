@@ -4,7 +4,7 @@ set -e
 echo "🚀 Starting AI Mixer Tournament Application..."
 
 # Set Python path to include the app directory and backend directory
-export PYTHONPATH=/app:/app/tournament_webapp/backend:/app/tournament_webapp
+export PYTHONPATH=/root/.local/lib/python3.10/site-packages:/app:/app/tournament_webapp/backend:/app/tournament_webapp:$PYTHONPATH
 
 # Add local bin to PATH for user-installed packages
 export PATH=$PATH:/home/appuser/.local/bin:/root/.local/bin
