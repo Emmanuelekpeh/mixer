@@ -1,4 +1,15 @@
-FROM python:3.10-slim AS builder
+FROM node:16-slim AS frontend-builder
+
+WORKDIR /app/frontend
+
+# Copy frontend files
+COPY tournament_webapp/frontend/package*.json ./
+RUN npm install
+
+COPY tournament_webapp/frontend/ ./
+RUN npm run build
+
+FROM python:3.10-slim AS backend-builder
 
 WORKDIR /app
 
@@ -18,9 +29,15 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Copy installed packages from builder
-COPY --from=builder /root/.local /root/.local
+# Copy installed packages from backend-builder
+COPY --from=backend-builder /root/.local /root/.local
 ENV PATH=/root/.local/bin:$PATH
+
+# Copy frontend build from frontend-builder
+COPY --from=frontend-builder /app/frontend/build /app/tournament_webapp/frontend/build
+# Create a symlink for easier access
+RUN mkdir -p /app/tournament_webapp/frontend && \
+    ln -sf /app/tournament_webapp/frontend/build /app/frontend-build
 
 # Copy the application code and entrypoint script
 COPY . .
