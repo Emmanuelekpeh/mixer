@@ -315,6 +315,14 @@ app.mount("/processed_audio", StaticFiles(directory=str(processed_audio_dir)), n
 # Initialize tournament engine
 models_dir = Path(MODELS_DIR)
 
+# Setup frontend serving if available
+try:
+    from serve_frontend import setup_frontend_serving
+    setup_frontend_serving(app)
+    logger.info("Frontend serving configured successfully")
+except Exception as e:
+    logger.warning(f"Failed to configure frontend serving: {str(e)}")
+
 # Import the model manager if available
 try:
     from tournament_webapp.backend.tournament_model_manager import TournamentModelManager
