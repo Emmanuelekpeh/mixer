@@ -60,11 +60,8 @@ def setup_frontend_serving(app: FastAPI):
     # Serve the frontend at multiple paths
     @app.get("/", response_class=HTMLResponse)
     async def serve_root(request: Request):
-        # Only serve the frontend if the client accepts HTML
-        if "text/html" in request.headers.get("accept", ""):
-            return HTMLResponse(content=index_html)
-        # Otherwise return a simple JSON response
-        return {"status": "ok", "message": "API is running"}
+        # Always serve the frontend HTML
+        return HTMLResponse(content=index_html)
         
     @app.get("/app", response_class=HTMLResponse)
     async def serve_app_root():
