@@ -16,7 +16,7 @@ Integration with production AI mixer and enhanced musical intelligence.
 from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks, Form, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse, RedirectResponse
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any
 import asyncio
@@ -2101,3 +2101,19 @@ async def get_model_files():
         raise HTTPException(status_code=500, detail=f"Failed to get model files: {str(e)}")
 
 initialize_tournament_engine()
+
+# Serve React routes that would otherwise 404 on refresh
+@app.get("/setup", include_in_schema=False)
+async def serve_setup():
+    # Always return index.html so React router can handle the path
+    index_path = frontend_build / "index.html" if 'frontend_build' in globals() and frontend_build else None
+    if index_path and index_path.exists():
+        return FileResponse(index_path)
+    return RedirectResponse("/")
+
+@app.get("/manifest.json", include_in_schema=False)
+async def manifest_file():
+    manifest_path = (frontend_build / "manifest.json") if 'frontend_build' in globals() and frontend_build else None
+    if manifest_path and manifest_path.exists():
+        return FileResponse(manifest_path, media_type="application/json")
+    return JSONResponse({"name": "Mixture"})

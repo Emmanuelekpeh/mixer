@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import toast from 'react-hot-toast';
 
@@ -486,10 +486,7 @@ function App() {
                 <SavedTournaments 
                   user={currentUser}
                   onResumeTournament={handleTournamentStart}
-                  onCreateNew={() => {
-                    // We can't use navigate here, so we'll use window.location temporarily
-                    window.location.href = '/setup';
-                  }}
+                  onCreateNew={() => navigate('/setup')}
                 />
               )
             } />
