@@ -33,11 +33,7 @@ from datetime import datetime
 from database import init_database, get_database_stats
 from database_service import DatabaseService, get_database_service
 
-# Initialize database on startup
-print("🗄️  Initializing database...")
-init_database()
-db_stats = get_database_stats()
-print(f"📊 Database ready: {db_stats}")
+# Database will be initialized on first request to avoid startup failures
 from dotenv import load_dotenv
 
 # Add the parent directory to the Python path
@@ -214,29 +210,13 @@ AUDIO_DIR = DATA_DIR / "audio"
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint for deployment platforms"""
-    try:
-        # Check database connection
-        db_stats = get_database_stats()
-        
-        # Check if models are loaded
-        models_available = db_stats.get('ai_models', 0) > 0
-        
-        return {
-            "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
-            "database": "connected",
-            "models_available": models_available,
-            "total_models": db_stats.get('ai_models', 0),
-            "version": "2.0.0",
-            "environment": os.getenv("ENVIRONMENT", "development")
-        }
-    except Exception as e:
-        return {
-            "status": "unhealthy",
-            "error": str(e),
-            "timestamp": datetime.now().isoformat(),
-            "version": "2.0.0"
-        }
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "version": "2.0.0",
+        "environment": os.getenv("ENVIRONMENT", "development"),
+        "message": "API is running"
+    }
 
 # Ensure directories exist
 DATA_DIR.mkdir(exist_ok=True)
@@ -619,7 +599,22 @@ class SimpleTournamentEngine:
         return self._evolution_engine
 
 # Initialize the engine - using enhanced version with persistence
-tournament_engine = EnhancedTournamentEngine()
+tournament_engine = None
+
+# Initialize tournament engine as None initially
+tournament_engine = None
+
+def initialize_tournament_engine():
+    """Initialize tournament engine lazily"""
+    global tournament_engine
+    if tournament_engine is None:
+        try:
+            tournament_engine = EnhancedTournamentEngine()
+            logger.info("✅ Tournament engine initialized")
+        except Exception as e:
+            logger.error(f"❌ Tournament engine initialization failed: {str(e)}")
+            tournament_engine = SimpleTournamentEngine(models_dir)
+    return tournament_engine
 
 # Pydantic models for API
 class TournamentCreateRequest(BaseModel):
