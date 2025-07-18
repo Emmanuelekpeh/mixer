@@ -277,43 +277,14 @@ class BattleResponse(BaseModel):
 
 # API Endpoints
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "version": "1.0.0",
-        "services": {
-            "database": "connected",
-            "tournament_engine": "ready",
-            "models_available": len(tournament_engine.models) if hasattr(tournament_engine, 'models') else 0
-        }
-    }
-
-@app.get("/api/health")
-async def api_health_check():
-    """API health check endpoint"""
-    return await health_check()
-
-# Health check endpoint
-@app.get("/")
-async def root_health_check():
-    """Root health check endpoint"""
-    return {
-        "status": "healthy",
-        "service": "AI Mixer Tournament API",
-        "version": "1.0.0",
-        "timestamp": datetime.now().isoformat(),
-        "database": "connected"
-    }
-
+# Root endpoint redirects to health check
 @app.get("/")
 async def root():
     """Root endpoint to check if API is running"""
     return {
         "status": "ok",
-        "message": "AI Mixer Tournament API is running",        "version": "1.0.0"
+        "message": "AI Mixer Tournament API is running",
+        "version": "1.0.0"
     }
 
 # Note: Newer user and tournament endpoints are defined later in the file
@@ -2033,31 +2004,36 @@ async def process_audio_analysis(tournament_id: str, battle_id: str):
 
 # Health check endpoint
 @app.get("/api/health")
-async def health_check():
+async def api_health_check():
     """Health check endpoint for monitoring deployment status"""
-    # Get model information
-    models_dir = os.environ.get("MODELS_DIR", "../models")
-    models_path = Path(models_dir)
-    model_files = list(models_path.glob("*.pth"))
-    
-    # Get deployment information
-    is_production = os.environ.get("PRODUCTION", "false").lower() == "true"
-    deployment_platform = "Render" if "RENDER" in os.environ else "Local"
-    if "RAILWAY_STATIC_URL" in os.environ:
-        deployment_platform = "Railway"
+    try:
+        # Get model information
+        models_dir = os.environ.get("MODELS_DIR", "../models")
+        models_path = Path(models_dir)
+        model_files = list(models_path.glob("*.pth"))
         
-    return {
-        "status": "healthy",
-        "engine_status": "operational",
-        "environment": "production" if is_production else "development",
-        "platform": deployment_platform,
-        "models_loaded": len(tournament_engine.get_model_list()),
-        "models_available": len(model_files),
-        "active_tournaments": len(tournament_engine.tournaments),
-        "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
-        "api_version": "1.0.0",
-        "timestamp": datetime.now().isoformat()
-    }
+        # Get deployment information
+        is_production = os.environ.get("PRODUCTION", "false").lower() == "true"
+        deployment_platform = "Render" if "RENDER" in os.environ else "Local"
+        if "RAILWAY_STATIC_URL" in os.environ:
+            deployment_platform = "Railway"
+            
+        return {
+            "status": "healthy",
+            "engine_status": "operational",
+            "environment": "production" if is_production else "development",
+            "platform": deployment_platform,
+            "models_available": len(model_files),
+            "api_version": "1.0.0",
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
 
 # WebSocket endpoint for real-time updates (future enhancement)
 # @app.websocket("/ws/{tournament_id}")
