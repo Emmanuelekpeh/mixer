@@ -415,7 +415,14 @@ function App() {
     localStorage.removeItem('activeTournament');
   };
 
-  const navigate = useNavigate();
+  // ---------------------------
+  // Helper Wrapper Components
+  // ---------------------------
+
+  const SavedTournamentsWrapper = (props) => {
+    const navigate = useNavigate();
+    return <SavedTournaments {...props} onCreateNew={() => navigate('/setup')} />;
+  };
 
   // ---------------------------
   // UI Rendering
@@ -488,10 +495,9 @@ function App() {
               !currentUser ? (
                 <EnhancedTournamentSetup onUserLogin={handleUserLogin} />
               ) : (
-                <SavedTournaments 
+                <SavedTournamentsWrapper 
                   user={currentUser}
                   onResumeTournament={handleTournamentStart}
-                  onCreateNew={() => navigate('/setup')}
                 />
               )
             } />
