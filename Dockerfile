@@ -64,7 +64,7 @@ EXPOSE $PORT
 
 # Set environment variables
 ENV PRODUCTION=true
-ENV MODELS_DIR=/app/models/deployment
+ENV MODELS_DIR=/app/models
 ENV ALLOWED_ORIGINS=https://ai-mixer-tournament.onrender.com,https://ai-mixer-tournament.railway.app,http://localhost:3000
 ENV LOG_LEVEL=INFO
 ENV WORKERS=4

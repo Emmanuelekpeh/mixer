@@ -7,6 +7,7 @@ python -c "import sys; sys.path.append('/app'); from tournament_webapp.backend.h
 # Install required packages if not already installed
 pip install uvicorn fastapi sqlalchemy python-dotenv python-multipart numpy
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+pip install librosa
 
 # Add local bin to PATH
 export PATH=$PATH:/home/appuser/.local/bin
