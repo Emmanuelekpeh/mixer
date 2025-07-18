@@ -260,12 +260,11 @@ class BattleResponse(BaseModel):
 # Root endpoint redirects to health check
 @app.get("/")
 async def root():
-    """Root endpoint to check if API is running"""
-    return {
-        "status": "ok",
-        "message": "AI Mixer Tournament API is running",
-        "version": "1.0.0"
-    }
+    """Root endpoint now serves React index.html if available"""
+    index_path = frontend_build / "index.html"
+    if frontend_build.exists() and index_path.exists():
+        return FileResponse(index_path)
+    return {"status": "running", "message": "Tournament API"}
 
 # Note: Newer user and tournament endpoints are defined later in the file
 # The old endpoints here were replaced with updated versions
@@ -2095,3 +2094,8 @@ async def get_model_files():
     except Exception as e:
         logger.error(f"Error getting model files: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get model files: {str(e)}")
+
+# Define frontend build directory and mount if exists
+frontend_build = current_dir.parent / "frontend" / "build"
+if frontend_build.exists():
+    app.mount("/", StaticFiles(directory=str(frontend_build), html=True), name="frontend")

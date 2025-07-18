@@ -59,7 +59,7 @@ RUN useradd -m appuser && \
 USER appuser
 
 # Set Python path to include the app directory
-ENV PYTHONPATH="${PYTHONPATH}:/app"
+ENV PYTHONPATH="/root/.local/lib/python3.10/site-packages:${PYTHONPATH}"
 
 # Expose the port the app will run on
 EXPOSE $PORT
