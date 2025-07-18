@@ -415,6 +415,11 @@ function App() {
     localStorage.removeItem('activeTournament');
   };
 
+  const navigate = useNavigate();
+
+  // ---------------------------
+  // UI Rendering
+  // ---------------------------
   if (loading) {
     return (
       <AppContainer>
