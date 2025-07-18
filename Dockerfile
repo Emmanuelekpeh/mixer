@@ -33,7 +33,12 @@ WORKDIR /app
 
 # Copy installed packages from backend-builder
 COPY --from=backend-builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH
+# Duplicate packages to appuser's home to avoid permission issues
+RUN mkdir -p /home/appuser/.local && cp -r /root/.local/* /home/appuser/.local/ && chmod -R 755 /home/appuser/.local
+
+# Update environment for appuser
+ENV PATH=/home/appuser/.local/bin:/root/.local/bin:$PATH
+ENV PYTHONPATH="/home/appuser/.local/lib/python3.10/site-packages:/root/.local/lib/python3.10/site-packages:${PYTHONPATH}"
 
 # Copy frontend build from frontend-builder
 COPY --from=frontend-builder /app/frontend/build /app/tournament_webapp/frontend/build
