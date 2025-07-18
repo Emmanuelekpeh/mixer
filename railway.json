@@ -16,8 +16,8 @@
       "variables": {
         "PYTHON_VERSION": "3.11.0",
         "ENVIRONMENT": "production",
-        "MODELS_DIR": "/app/models/deployment",
-        "ALLOWED_ORIGINS": "https://ai-mixer-tournament.railway.app,http://localhost:3000",
+        "MODELS_DIR": "/app/models",
+        "ALLOWED_ORIGINS": "https://ai-mixer-tournament.railway.app,https://web-production-dc951.up.railway.app,http://localhost:3000",
         "LOG_LEVEL": "INFO",
         "WORKERS": "4",
         "PYTHONUNBUFFERED": "1"
