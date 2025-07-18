@@ -225,6 +225,13 @@ def init_database():
         
         if model_count == 0:
             print("  🤖 Creating comprehensive AI model collection...")
+            # Rename default model names using lesser-known artists
+            artist_names = [
+                "Caravaggio", "Munch", "Kahlo", "Hokusai", "Turner", "Goya",
+                "Modigliani", "Rodin", "Seurat", "Wyeth", "O'Keeffe", "Sargent",
+                "Toulouse-Lautrec", "Monet", "Bosch", "Bruegel"
+            ]
+
             default_models = [
                 # CNN-Based Models
                 {
@@ -407,6 +414,12 @@ def init_database():
                     }
                 }
             ]
+            
+            # Apply artist names to models sequentially
+            for idx, model_data in enumerate(default_models):
+                artist = artist_names[idx % len(artist_names)]
+                model_data["name"] = artist
+                model_data["nickname"] = artist
             
             for model_data in default_models:
                 model = AIModel(**model_data)
