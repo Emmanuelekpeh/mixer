@@ -280,15 +280,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Static file serving
-static_dir = Path("static")
+# Static and frontend setup
+if (current_dir.parent / "frontend" / "build").exists():
+    frontend_build = current_dir.parent / "frontend" / "build"
+    static_dir = frontend_build / "static"  # point /static to build assets
+else:
+    frontend_build = None
+    static_dir = Path("static")
 static_dir.mkdir(parents=True, exist_ok=True)
+
+# Re-mount /static to correct directory
+try:
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+except RuntimeError:
+    # If already mounted, replace
+    app.routes = [r for r in app.routes if not (hasattr(r, 'path') and r.path == "/static/{path:path}")]
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+if frontend_build:
+    app.mount("/", StaticFiles(directory=str(frontend_build), html=True), name="frontend")
 
 # Create processed audio directory - use the existing one we created
 processed_audio_dir = Path("processed_audio")
 processed_audio_dir.mkdir(parents=True, exist_ok=True)
 
-app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 app.mount("/processed_audio", StaticFiles(directory=str(processed_audio_dir)), name="processed_audio")
 
 # Initialize tournament engine
@@ -2094,8 +2109,3 @@ async def get_model_files():
     except Exception as e:
         logger.error(f"Error getting model files: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get model files: {str(e)}")
-
-# Define frontend build directory and mount if exists
-frontend_build = current_dir.parent / "frontend" / "build"
-if frontend_build.exists():
-    app.mount("/", StaticFiles(directory=str(frontend_build), html=True), name="frontend")
