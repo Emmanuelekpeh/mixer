@@ -39,7 +39,7 @@ def setup_frontend_serving(app: FastAPI):
     # Mount the static files directory if it exists
     static_dir = build_dir / "static"
     if static_dir.exists():
-        app.mount("/static-frontend", StaticFiles(directory=str(static_dir)), name="static-frontend")
+        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
         logger.info(f"Mounted static frontend files from {static_dir}")
     
     # Check for index.html
