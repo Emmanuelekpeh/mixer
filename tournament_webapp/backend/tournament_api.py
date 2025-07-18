@@ -1387,26 +1387,27 @@ async def get_task_progress(task_id: str):
 async def create_user(request: UserCreateRequest):
     """Create new user profile"""
     try:
-        profile = tournament_engine.create_user_profile(
+        # EnhancedTournamentEngine may return None; we still call it to ensure any
+        # internal bookkeeping is executed.
+        tournament_engine.create_user_profile(
             user_id=request.user_id,
             username=request.username
         )
-        
-        # Handle profile as dictionary (current implementation)
+
         profile_dict = {
-            "user_id": profile.get("user_id", request.user_id),
-            "username": profile.get("username", request.username),
-            "tier": "Rookie",  # Default tier
-            "tournaments_completed": profile.get("tournaments_played", 0),
-            "total_battles": profile.get("battles_voted", 0),
+            "user_id": request.user_id,
+            "username": request.username,
+            "tier": "Rookie",
+            "tournaments_completed": 0,
+            "total_battles": 0,
             "referral_code": f"REF_{request.user_id[:8].upper()}",
-            "free_mixes_earned": profile.get("free_mixes_earned", 0),
-            "achievements": profile.get("achievements", []),
-            "created_at": profile.get("created_at", datetime.now().isoformat())
+            "free_mixes_earned": 0,
+            "achievements": [],
+            "created_at": datetime.now().isoformat()
         }
-        
+
         logger.info(f"👤 User created: {request.username}")
-        return JSONResponse(content={"success": True, "profile": profile_dict})
+        return JSONResponse(status_code=201, content={"success": True, "profile": profile_dict})
         
     except Exception as e:
         logger.error(f"❌ User creation failed: {str(e)}")
