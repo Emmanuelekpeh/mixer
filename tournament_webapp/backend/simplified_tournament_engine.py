@@ -62,8 +62,8 @@ def load_real_models(models_dir: Optional[str] = None) -> List[Dict[str, Any]]:
             logger.warning(f"Specified models directory not found: {models_path}")
             return get_fallback_models()
     
-    # Load models from JSON config files
-    model_configs = list(models_path.glob("*.json"))
+    # Load models from JSON config files (search recursively)
+    model_configs = list(models_path.glob("**/*.json"))
     
     for config_file in model_configs:
         try:
@@ -97,6 +97,26 @@ def load_real_models(models_dir: Optional[str] = None) -> List[Dict[str, Any]]:
         except Exception as e:
             logger.error(f"❌ Failed to load model config {config_file}: {e}")
     
+    # Additionally load any .pth weights without matching JSON metadata.
+    pth_files = list(models_path.glob("**/*.pth"))
+    for pth_file in pth_files:
+        stem = pth_file.stem
+        if any(m["id"] == stem for m in models):
+            continue  # already accounted for via json
+        models.append({
+            "id": stem,
+            "name": stem,
+            "nickname": stem,
+            "architecture": "cnn",
+            "generation": 1,
+            "elo_rating": 1200,
+            "tier": "Amateur",
+            "specializations": [],
+            "model_path": str(pth_file),
+            "config_path": None,
+            "status": "ready"
+        })
+
     if models:
         logger.info(f"🎯 Loaded {len(models)} real trained models")
         return models
@@ -130,12 +150,14 @@ def get_fallback_models() -> List[Dict[str, Any]]:
     ]
 
 # Load real models at startup with correct path resolution
-def get_models_directory():
-    """Get the correct models directory path"""
+def get_models_directory() -> str:
+    """Return models directory, preferring $MODEL_ROOT env variable."""
+    env_dir = os.getenv("MODEL_ROOT")
+    if env_dir:
+        return env_dir
+    # Default: ../../models relative to backend file
     current_file = Path(__file__)
-    # Go up from backend/simplified_tournament_engine.py to mixer/models
-    models_dir = current_file.parent.parent.parent / "models"
-    return str(models_dir)
+    return str(current_file.parent.parent.parent / "models")
 
 AVAILABLE_MODELS = load_real_models(get_models_directory())
 
@@ -156,7 +178,7 @@ class EnhancedTournamentEngine:
         self.real_models_available = False
         try:
             from tournament_model_manager import TournamentModelManager
-            models_dir = Path(__file__).parent.parent.parent / "models"
+            models_dir = Path(os.getenv("MODEL_ROOT", str(Path(__file__).parent.parent.parent / "models")))
             self.model_manager = TournamentModelManager(models_dir)
             self.real_models_available = True
             logger.info("✅ Real tournament model manager loaded")

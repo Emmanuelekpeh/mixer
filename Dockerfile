@@ -79,6 +79,7 @@ ENV ALLOWED_ORIGINS=https://ai-mixer-tournament.onrender.com,https://ai-mixer-to
 ENV LOG_LEVEL=INFO
 ENV WORKERS=4
 ENV PYTHONUNBUFFERED=1
+ENV MODEL_ROOT=/app/models/deployment
 
 # Configure entrypoint
 CMD ["/app/entrypoint.sh"]
