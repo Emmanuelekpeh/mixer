@@ -113,6 +113,18 @@ class SpectrogramMixingModel(nn.Module):
         Returns:
             Tensor of shape [batch_size, num_output_params] containing mixing parameters
         """
+        # Ensure input is 4D [batch, channels, height, width]
+        if x.dim() == 5:
+            # Remove extra dimensions
+            while x.dim() > 4 and x.shape[1] == 1:
+                x = x.squeeze(1)
+        elif x.dim() == 3:
+            x = x.unsqueeze(1)
+        
+        # Final check to ensure we have exactly 4 dimensions
+        while x.dim() > 4:
+            x = x.squeeze(1)
+        
         # Check input shape
         if len(x.shape) != 4:
             raise ValueError(f"Expected 4D input tensor, got shape {x.shape}")

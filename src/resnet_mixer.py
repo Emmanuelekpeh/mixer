@@ -34,6 +34,8 @@ logger = logging.getLogger(__name__)
 class SpectralResidualBlock(nn.Module):
     """Residual block specialized for spectrogram processing."""
     
+    expansion = 1  # Expansion factor for this block type
+    
     def __init__(self, in_channels: int, out_channels: int, stride: int = 1, 
                  downsample: Optional[nn.Module] = None, dropout: float = 0.3):
         super().__init__()
@@ -159,6 +161,52 @@ class FrequencyAwareResBlock(nn.Module):
         output = processed + skip_out
         return F.relu(output)
 
+class MultiScaleProcessor(nn.Module):
+    """Multi-scale processor for different frequency ranges."""
+    
+    def __init__(self, channels: int, dropout: float = 0.3):
+        super().__init__()
+        self.processing = nn.Sequential(
+            nn.Conv2d(channels, channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(channels),
+            nn.ReLU(),
+            nn.Dropout2d(dropout)
+        )
+        
+    def forward(self, x):
+        return self.processing(x)
+
+class FrequencyAwareProcessor(nn.Module):
+    """Frequency-aware processing layer."""
+    
+    def __init__(self, channels: int, dropout: float = 0.3):
+        super().__init__()
+        self.processing = nn.Sequential(
+            nn.Conv2d(channels, channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(channels),
+            nn.ReLU(),
+            nn.Dropout2d(dropout)
+        )
+        
+    def forward(self, x):
+        return self.processing(x)
+
+class NoiseRobustnessLayer(nn.Module):
+    """Noise robustness enhancement layer."""
+    
+    def __init__(self, n_outputs: int, dropout: float = 0.3):
+        super().__init__()
+        self.enhancement = nn.Sequential(
+            nn.Linear(n_outputs, n_outputs),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(n_outputs, n_outputs)
+        )
+        
+    def forward(self, x):
+        enhanced = self.enhancement(x)
+        return x + enhanced  # Residual connection
+
 class ResNetAudioMixer(nn.Module):
     """
     ResNet-based audio mixer with deep residual processing.
@@ -168,95 +216,89 @@ class ResNetAudioMixer(nn.Module):
     """
     
     def __init__(self,
-                 n_mels: int = 128,
-                 n_outputs: int = 10,
-                 layers: List[int] = [2, 2, 2, 2],
-                 dropout: float = 0.3):
+                 block: nn.Module,
+                 layers: List[int],
+                 n_outputs: int = 11, 
+                 dropout: float = 0.3,
+                 input_channels: int = 1,
+                 n_mels: int = 40):  # Added n_mels parameter for compatibility
         super().__init__()
-        
-        self.n_mels = n_mels
-        self.n_outputs = n_outputs
-        self.inplanes = 64
+        self.in_planes = 64
+        self.n_mels = n_mels  # Store n_mels for compatibility
         
         # Initial convolution
-        self.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.conv1 = nn.Conv2d(input_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
+        self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         
         # Residual layers
-        self.layer1 = self._make_layer(64, layers[0], stride=1, dropout=dropout)
-        self.layer2 = self._make_layer(128, layers[1], stride=2, dropout=dropout)
-        self.layer3 = self._make_layer(256, layers[2], stride=2, dropout=dropout)
-        self.layer4 = self._make_layer(512, layers[3], stride=2, dropout=dropout)
+        self.layer1 = self._make_layer(block, 64, layers[0], stride=1, dropout=dropout)
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, dropout=dropout)
+        self.layer3 = self._make_layer(block, 256, layers[2], stride=2, dropout=dropout)
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=2, dropout=dropout)
         
-        # Multi-scale residual blocks
-        self.multi_scale1 = MultiScaleResidualBlock(64, 64)
-        self.multi_scale2 = MultiScaleResidualBlock(128, 128)
-        self.multi_scale3 = MultiScaleResidualBlock(256, 256)
+        # Multi-scale processing layers
+        self.multi_scale1 = MultiScaleProcessor(64, dropout=dropout)
+        self.multi_scale2 = MultiScaleProcessor(128, dropout=dropout)
+        self.multi_scale3 = MultiScaleProcessor(256, dropout=dropout)
         
         # Frequency-aware processing
-        self.freq_aware = FrequencyAwareResBlock(512, 512, n_mels)
+        self.freq_aware = FrequencyAwareProcessor(512, dropout=dropout)
         
-        # Global feature extraction
+        # Global pooling layers
         self.global_avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.global_maxpool = nn.AdaptiveMaxPool2d((1, 1))
         
-        # Classifier head with specialized outputs
+        # Classification head
         self.classifier = nn.Sequential(
-            nn.Linear(512 * 2, 1024),  # * 2 for avg + max pooling
+            nn.Linear(512 * 2, 256),  # *2 because we concat avg and max pool
             nn.ReLU(),
             nn.Dropout(dropout),
-            
-            nn.Linear(1024, 512),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            
-            nn.Linear(512, 256),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            
             nn.Linear(256, n_outputs)
         )
         
-        # Robustness enhancement layers
-        self.noise_robustness = nn.Sequential(
-            nn.Linear(n_outputs, n_outputs * 2),
-            nn.ReLU(),
-            nn.Linear(n_outputs * 2, n_outputs)
-        )
+        # Noise robustness layer
+        self.noise_robustness = NoiseRobustnessLayer(n_outputs, dropout=dropout)
         
-    def _make_layer(self, planes: int, blocks: int, stride: int = 1, dropout: float = 0.3):
+        # Legacy layers for compatibility
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc = nn.Linear(512 * block.expansion, n_outputs)
+        
+    def _make_layer(self, block, planes, blocks, stride=1, dropout=0.3):
         """Create a residual layer."""
         downsample = None
-        if stride != 1 or self.inplanes != planes:
+        if stride != 1 or self.in_planes != planes * block.expansion:
             downsample = nn.Sequential(
-                nn.Conv2d(self.inplanes, planes, kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(planes),
+                nn.Conv2d(self.in_planes, planes * block.expansion, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(planes * block.expansion),
             )
         
         layers = []
-        layers.append(SpectralResidualBlock(self.inplanes, planes, stride, downsample, dropout))
-        self.inplanes = planes
-        
+        layers.append(block(self.in_planes, planes, stride, downsample, dropout=dropout))
+        self.in_planes = planes * block.expansion
         for _ in range(1, blocks):
-            layers.append(SpectralResidualBlock(self.inplanes, planes, dropout=dropout))
-        
+            layers.append(block(self.in_planes, planes, dropout=dropout))
+            
         return nn.Sequential(*layers)
     
-    def forward(self, spectrogram):
-        """
-        Forward pass through ResNet mixer.
+    def forward(self, x):
+        """Forward pass through ResNet mixer."""
+        # Ensure input is 4D [batch, channels, height, width]
+        if x.dim() == 5:
+            # Remove extra dimensions - could be [batch, 1, 1, height, width] or [batch, 1, channels, height, width]
+            x = x.squeeze(1).squeeze(1) if x.shape[1] == 1 and x.shape[2] == 1 else x.squeeze(1)
+        elif x.dim() == 3:
+            x = x.unsqueeze(1)
         
-        Args:
-            spectrogram: (batch_size, n_mels, time_steps)
-        """
-        # Add channel dimension
-        x = spectrogram.unsqueeze(1)  # (batch_size, 1, n_mels, time_steps)
-        
+        # Final check to ensure we have exactly 4 dimensions
+        while x.dim() > 4:
+            x = x.squeeze(1)
+
         # Initial convolution
         x = self.conv1(x)
         x = self.bn1(x)
-        x = F.relu(x)
+        x = self.relu(x)
         x = self.maxpool(x)
         
         # Residual layers with multi-scale processing
@@ -442,10 +484,12 @@ class ResNetAudioDataset(torch.utils.data.Dataset):
 def create_resnet_mixer_model(config: Optional[Dict] = None) -> ResNetAudioMixer:
     """Factory function to create ResNet mixer model."""
     default_config = {
-        'n_mels': 128,
-        'n_outputs': 10,
+        'block': SpectralResidualBlock,
         'layers': [2, 2, 2, 2],
-        'dropout': 0.3
+        'n_outputs': 10,
+        'dropout': 0.3,
+        'input_channels': 1,
+        'n_mels': 128
     }
     
     if config:

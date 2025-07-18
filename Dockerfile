@@ -22,7 +22,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy requirements first for better layer caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt && \
-    pip install --no-cache-dir --user gunicorn uvicorn
+    pip install --no-cache-dir --user gunicorn uvicorn[standard] && \
+    pip install --no-cache-dir --user torch torchvision --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir --user librosa matplotlib
 
 # Create a clean production image with only runtime dependencies
 FROM python:3.10-slim
@@ -44,8 +46,8 @@ COPY . .
 COPY entrypoint.sh /app/entrypoint.sh
 
 # Create necessary directories and set permissions
-RUN mkdir -p /app/logs /app/data/mixed_outputs /app/tournament_webapp/uploads && \
-    chmod -R 755 /app/logs /app/data/mixed_outputs /app/tournament_webapp/uploads && \
+RUN mkdir -p /app/logs /app/data/mixed_outputs /app/tournament_webapp/uploads /app/models && \
+    chmod -R 755 /app/logs /app/data/mixed_outputs /app/tournament_webapp/uploads /app/models && \
     # Install gunicorn and uvicorn system-wide for all users
     pip install --no-cache-dir gunicorn uvicorn[standard] && \
     # Make entrypoint executable

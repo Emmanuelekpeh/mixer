@@ -3,8 +3,8 @@
 Script to add new AI model architectures to the tournament system
 """
 
-from database_service import DatabaseService
-from database import AIModel
+from .database_service import DatabaseService
+from .database import AIModel
 from datetime import datetime
 
 def add_new_models():

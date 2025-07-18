@@ -1,0 +1,21 @@
+PREDICTED MIXING PARAMETERS:
+Master Volume: 0.768
+Bass Gain: 0.308
+Mid Gain: 0.277
+Treble Gain: 0.196
+Compressor Threshold: 0.492
+Compressor Ratio: 0.418
+Gate Threshold: 0.076
+Reverb Send: 0.037
+Delay Send: 0.018
+Stereo Width: 0.499
+Pan: 0.528
+
+PREDICTED DISTORTION PARAMETERS:
+Noise Level: 0.057
+Reverb Level: 0.048
+Low-pass Cutoff: 0.718
+High-pass Cutoff: 0.010
+Compression Ratio: 0.820
+Clipping Threshold: 0.876
+EQ Imbalance: 0.486

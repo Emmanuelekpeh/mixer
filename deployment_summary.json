@@ -1,0 +1,270 @@
+{
+  "deployment_summary": {
+    "created_at": "2025-07-17T13:45:13.393374",
+    "models_directory": "models",
+    "deployment_ready": true,
+    "total_models": 9,
+    "total_size_mb": 240.42,
+    "architectures": {
+      "transformer": 1,
+      "ast": 1,
+      "gan": 1,
+      "cnn": 2,
+      "hybrid": 1,
+      "lstm": 1,
+      "resnet": 1,
+      "vae": 1
+    }
+  },
+  "model_registry": {
+    "created_at": "2025-07-17T13:45:10.154094",
+    "total_models": 9,
+    "models": {
+      "advanced_transformer": {
+        "file_path": "models\\advanced_transformer_best.pth",
+        "size_mb": 47.33,
+        "architecture": "transformer",
+        "loadable": true,
+        "load_error": null,
+        "metadata": {
+          "name": "Advanced Transformer Best",
+          "architecture": "transformer",
+          "description": "TRANSFORMER model for audio mixing",
+          "created_at": "2025-07-17T08:18:42.116423",
+          "file_path": "models\\advanced_transformer_best.pth",
+          "file_size_mb": 47.328837394714355,
+          "specializations": [
+            "attention_based",
+            "context_aware"
+          ],
+          "performance_metrics": {},
+          "parameters": {},
+          "model_info": {}
+        },
+        "created_at": "2025-07-15T07:10:43.478654",
+        "deployment_priority": 125
+      },
+      "ast_regressor": {
+        "file_path": "models\\ast_regressor_best.pth",
+        "size_mb": 0.81,
+        "architecture": "ast",
+        "loadable": true,
+        "load_error": null,
+        "metadata": {
+          "name": "Ast Regressor Best",
+          "architecture": "cnn",
+          "description": "CNN model for audio mixing",
+          "created_at": "2025-07-17T08:18:42.131097",
+          "file_path": "models\\ast_regressor_best.pth",
+          "file_size_mb": 0.806950569152832,
+          "specializations": [],
+          "performance_metrics": {},
+          "parameters": {},
+          "model_info": {}
+        },
+        "created_at": "2025-07-14T17:54:40.167025",
+        "deployment_priority": 145
+      },
+      "audio_gan": {
+        "file_path": "models\\audio_gan_best.pth",
+        "size_mb": 43.15,
+        "architecture": "gan",
+        "loadable": true,
+        "load_error": null,
+        "metadata": {
+          "name": "Audio Gan Best",
+          "architecture": "gan",
+          "description": "GAN model for audio mixing",
+          "created_at": "2025-07-17T08:18:42.178169",
+          "file_path": "models\\audio_gan_best.pth",
+          "file_size_mb": 43.150593757629395,
+          "specializations": [
+            "generative_mixing",
+            "creative_effects"
+          ],
+          "performance_metrics": {},
+          "parameters": {},
+          "model_info": {}
+        },
+        "created_at": "2025-07-14T00:54:57.392437",
+        "deployment_priority": 110
+      },
+      "baseline_cnn": {
+        "file_path": "models\\baseline_cnn_best.pth",
+        "size_mb": 0.88,
+        "architecture": "cnn",
+        "loadable": true,
+        "load_error": null,
+        "metadata": {
+          "name": "Baseline Cnn Best",
+          "architecture": "cnn",
+          "description": "CNN model for audio mixing",
+          "created_at": "2025-07-17T08:18:42.186168",
+          "file_path": "models\\baseline_cnn_best.pth",
+          "file_size_mb": 0.880162239074707,
+          "specializations": [],
+          "performance_metrics": {},
+          "parameters": {},
+          "model_info": {}
+        },
+        "created_at": "2025-07-07T12:57:51.074097",
+        "deployment_priority": 130
+      },
+      "dual_path_hybrid": {
+        "file_path": "models\\dual_path_hybrid_best.pth",
+        "size_mb": 32.12,
+        "architecture": "hybrid",
+        "loadable": true,
+        "load_error": null,
+        "metadata": {
+          "name": "Dual Path Hybrid Best",
+          "architecture": "cnn",
+          "description": "CNN model for audio mixing",
+          "created_at": "2025-07-17T08:18:42.251513",
+          "file_path": "models\\dual_path_hybrid_best.pth",
+          "file_size_mb": 32.121774673461914,
+          "specializations": [],
+          "performance_metrics": {},
+          "parameters": {},
+          "model_info": {}
+        },
+        "created_at": "2025-07-17T03:24:03.836475",
+        "deployment_priority": 110
+      },
+      "enhanced_cnn": {
+        "file_path": "models\\enhanced_cnn_best.pth",
+        "size_mb": 10.03,
+        "architecture": "cnn",
+        "loadable": true,
+        "load_error": null,
+        "metadata": {
+          "name": "Enhanced Cnn Best",
+          "architecture": "cnn",
+          "description": "CNN model for audio mixing",
+          "created_at": "2025-07-17T08:18:42.274842",
+          "file_path": "models\\enhanced_cnn_best.pth",
+          "file_size_mb": 10.025713920593262,
+          "specializations": [],
+          "performance_metrics": {},
+          "parameters": {},
+          "model_info": {}
+        },
+        "created_at": "2025-07-07T13:50:17.255419",
+        "deployment_priority": 110
+      },
+      "lstm_mixer": {
+        "file_path": "models\\lstm_mixer_best.pth",
+        "size_mb": 15.45,
+        "architecture": "lstm",
+        "loadable": true,
+        "load_error": null,
+        "metadata": {
+          "name": "Lstm Mixer Best",
+          "architecture": "lstm",
+          "description": "LSTM model for audio mixing",
+          "created_at": "2025-07-17T08:18:42.306784",
+          "file_path": "models\\lstm_mixer_best.pth",
+          "file_size_mb": 15.4497709274292,
+          "specializations": [
+            "temporal_processing",
+            "sequence_aware"
+          ],
+          "performance_metrics": {},
+          "parameters": {},
+          "model_info": {}
+        },
+        "created_at": "2025-07-10T13:54:05.928468",
+        "deployment_priority": 110
+      },
+      "resnet_mixer": {
+        "file_path": "models\\resnet_mixer_best.pth",
+        "size_mb": 56.04,
+        "architecture": "resnet",
+        "loadable": true,
+        "load_error": null,
+        "metadata": {
+          "name": "Resnet Mixer Best",
+          "architecture": "resnet",
+          "description": "RESNET model for audio mixing",
+          "created_at": "2025-07-17T08:18:42.411932",
+          "file_path": "models\\resnet_mixer_best.pth",
+          "file_size_mb": 56.043559074401855,
+          "specializations": [
+            "deep_processing",
+            "residual_learning"
+          ],
+          "performance_metrics": {},
+          "parameters": {},
+          "model_info": {}
+        },
+        "created_at": "2025-07-14T10:08:07.510504",
+        "deployment_priority": 100
+      },
+      "vae_mixer": {
+        "file_path": "models\\vae_mixer_best.pth",
+        "size_mb": 34.61,
+        "architecture": "vae",
+        "loadable": true,
+        "load_error": null,
+        "metadata": {
+          "name": "Vae Mixer Best",
+          "architecture": "vae",
+          "description": "VAE model for audio mixing",
+          "created_at": "2025-07-17T08:18:42.451938",
+          "file_path": "models\\vae_mixer_best.pth",
+          "file_size_mb": 34.60800266265869,
+          "specializations": [
+            "latent_space_mixing",
+            "smooth_transitions"
+          ],
+          "performance_metrics": {},
+          "parameters": {},
+          "model_info": {}
+        },
+        "created_at": "2025-07-13T23:20:43.468214",
+        "deployment_priority": 110
+      }
+    },
+    "architectures": {
+      "transformer": 1,
+      "ast": 1,
+      "gan": 1,
+      "cnn": 2,
+      "hybrid": 1,
+      "lstm": 1,
+      "resnet": 1,
+      "vae": 1
+    },
+    "deployment_ready": true,
+    "total_size_mb": 240.4153652191162
+  },
+  "validation": {
+    "ready_for_deployment": true,
+    "total_models": 9,
+    "loadable_models": 9,
+    "failed_models": [],
+    "warnings": [],
+    "recommendations": []
+  },
+  "compression": {
+    "compressed_models": [
+      {
+        "original_file": "resnet_mixer_best.pth",
+        "compressed_file": "resnet_mixer_best.pth.gz",
+        "original_size_mb": 56.04,
+        "compressed_size_mb": 51.97,
+        "space_saved_mb": 4.08,
+        "compression_ratio": 0.93
+      }
+    ],
+    "total_size_before": 240.4153652191162,
+    "total_size_after": 236.33897972106934,
+    "space_saved": 4.076385498046875
+  },
+  "deployment_recommendations": [
+    "\u2705 All models are ready for deployment",
+    "\ud83d\ude80 Recommended platform: Railway or Render",
+    "\ud83d\udcbe Database: PostgreSQL (included with platform)",
+    "\ud83d\udce6 1 models compressed for deployment"
+  ]
+}

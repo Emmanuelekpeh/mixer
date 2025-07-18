@@ -1,0 +1,15 @@
+{
+  "architecture": "DualPathHybrid",
+  "total_parameters": 8411923,
+  "trainable_parameters": 8411923,
+  "ast_layers": 4,
+  "ast_dim": 256,
+  "gan_channels": [
+    32,
+    64,
+    128
+  ],
+  "fusion_dim": 128,
+  "version": "1.0",
+  "created": "2025-07-17T03:24:03.887919"
+}

@@ -43,6 +43,29 @@
   - Tournament history display incomplete
   - Social features (referrals, sharing) not working
 
+### Evolution Engine Refactor (Backend)
+- [x] **Audit DummyEvolutionEngine usage and requirements**  
+  _Completed_: Identified two inline dummy definitions and clarified data fields.  
+  PR: Replaced with real `EvolutionEngine`  
+
+- [x] **Design EvolutionEngine interface & data structures**  
+  _Completed_: Implemented ELO rating, pair generation, genealogy snapshot.  
+
+- [x] **Implement EvolutionEngine class & integrate**  
+  _Completed_: Added `backend/evolution_engine.py`, wired into `tournament_api.py` and `simplified_tournament_engine.py`.  
+  Added memoised property with `set_models` synchronisation.  
+
+- [x] **Unit tests for EvolutionEngine**  
+  _Completed_: `tests/test_evolution_engine.py` – all tests pass.
+
+### Backend Import Path & Symbol Resolution
+- [x] **Correct Relative Imports within Backend Package**  
+  _Completed_: All modules now use relative imports (`from .module import …`).
+- [x] **Remove duplicate validator implementations**  
+  _Completed_: `model_validator_fixed.py` now re-exports canonical validator.
+- [x] **Suppress SQLAlchemy assignment type errors**  
+  _Completed_: Added safe casting in `enhanced_model_discovery.py`.
+
 ## 🔧 CORE FUNCTIONALITY (Priority 2) - Essential Features
 
 ### Tournament Engine & Model Management
@@ -227,6 +250,9 @@
   - Database query optimization
   - Progressive loading
 
+### Placeholder / Mock Logic Removal
+- Backend dummy logic removed (EvolutionEngine).  Front-end scan reveals no runtime mocks – pending deeper audit.
+
 ---
 
 ## Dependencies & Relationships
@@ -247,3 +273,13 @@
 2. **1 Frontend Developer**: Priority 2-3 component completion
 3. **1 DevOps Engineer**: Priority 4-5 testing and deployment
 4. **1 AI/ML Engineer**: Priority 6 advanced features (when ready)
+
+## 🧠 ML MODEL TRAINING (Priority 4) - Model Development
+- [ ] **Train New Architectures Individually**: Modify `train_new_architectures.py` to allow training models one by one.
+    - LSTM Audio Mixer
+    - Audio GAN
+    - VAE Audio Mixer
+    - Advanced Transformer
+    - ResNet Audio Mixer
+
+## ⚙️ DEVOPS & INFRASTRUCTURE (Priority 5)

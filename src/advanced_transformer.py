@@ -32,48 +32,27 @@ from typing import Dict, Tuple, Optional, List
 
 logger = logging.getLogger(__name__)
 
-class PositionalEncoding2D(nn.Module):
-    """2D positional encoding for spectrograms (frequency + time)."""
-    
-    def __init__(self, d_model: int, max_freq_len: int = 128, max_time_len: int = 1000):
+class PositionalEncoding(nn.Module):
+    """Positional encoding for transformer."""
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
         super().__init__()
-        self.d_model = d_model
-        
-        # Create positional encoding for frequency dimension
-        freq_pe = torch.zeros(max_freq_len, d_model // 2)
-        freq_position = torch.arange(0, max_freq_len, dtype=torch.float).unsqueeze(1)
-        freq_div_term = torch.exp(torch.arange(0, d_model // 2, 2).float() * 
-                                 (-math.log(10000.0) / (d_model // 2)))
-        freq_pe[:, 0::2] = torch.sin(freq_position * freq_div_term)
-        freq_pe[:, 1::2] = torch.cos(freq_position * freq_div_term)
-        
-        # Create positional encoding for time dimension
-        time_pe = torch.zeros(max_time_len, d_model // 2)
-        time_position = torch.arange(0, max_time_len, dtype=torch.float).unsqueeze(1)
-        time_div_term = torch.exp(torch.arange(0, d_model // 2, 2).float() * 
-                                 (-math.log(10000.0) / (d_model // 2)))
-        time_pe[:, 0::2] = torch.sin(time_position * time_div_term)
-        time_pe[:, 1::2] = torch.cos(time_position * time_div_term)
-        
-        self.register_buffer('freq_pe', freq_pe)
-        self.register_buffer('time_pe', time_pe)
-        
-    def forward(self, x):
+        self.dropout = nn.Dropout(p=dropout)
+
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Add positional encoding to input.
-        x: (batch_size, freq_bins, time_steps, d_model)
+        Args:
+            x: Tensor, shape [batch_size, seq_len, d_model]
         """
-        batch_size, freq_bins, time_steps, d_model = x.size()
-        
-        # Expand positional encodings
-        freq_pe = self.freq_pe[:freq_bins].unsqueeze(1).expand(-1, time_steps, -1)
-        time_pe = self.time_pe[:time_steps].unsqueeze(0).expand(freq_bins, -1, -1)
-        
-        # Concatenate frequency and time positional encodings
-        pos_encoding = torch.cat([freq_pe, time_pe], dim=-1)
-        pos_encoding = pos_encoding.unsqueeze(0).expand(batch_size, -1, -1, -1)
-        
-        return x + pos_encoding
+        x = x + self.pe[:, :x.size(1)]
+        return self.dropout(x)
 
 class SpectrogramPatching(nn.Module):
     """Convert spectrogram to patches for transformer processing."""
@@ -87,8 +66,6 @@ class SpectrogramPatching(nn.Module):
         
         # Calculate number of patches
         self.n_freq_patches = n_mels // patch_size[0]
-        self.n_time_patches = 1000 // patch_size[1]  # Assuming 1000 time steps
-        self.n_patches = self.n_freq_patches * self.n_time_patches
         
         # Patch embedding layer
         patch_dim = patch_size[0] * patch_size[1]
@@ -102,19 +79,35 @@ class SpectrogramPatching(nn.Module):
         Convert spectrogram to patches.
         spectrogram: (batch_size, n_mels, time_steps)
         """
-        batch_size = spectrogram.size(0)
+        batch_size, n_mels, time_steps = spectrogram.shape
         
+        # Ensure dimensions are divisible by patch size
+        freq_remainder = n_mels % self.patch_size[0]
+        time_remainder = time_steps % self.patch_size[1]
+        
+        if freq_remainder != 0 or time_remainder != 0:
+            # Pad spectrogram to make it divisible by patch size
+            freq_pad = (self.patch_size[0] - freq_remainder) % self.patch_size[0]
+            time_pad = (self.patch_size[1] - time_remainder) % self.patch_size[1]
+            spectrogram = torch.nn.functional.pad(spectrogram, (0, time_pad, 0, freq_pad), mode='constant', value=0)
+            n_mels, time_steps = spectrogram.shape[-2:]
+        
+        # Dynamically calculate number of frequency and time patches after padding
+        n_freq_patches = n_mels // self.patch_size[0]
+        n_time_patches = time_steps // self.patch_size[1]
+        n_patches = n_freq_patches * n_time_patches
+
         # Reshape to patches
         # (batch_size, n_freq_patches, patch_size[0], n_time_patches, patch_size[1])
         patches = spectrogram.view(
-            batch_size, 
-            self.n_freq_patches, self.patch_size[0],
-            self.n_time_patches, self.patch_size[1]
+            batch_size,
+            n_freq_patches, self.patch_size[0],
+            n_time_patches, self.patch_size[1]
         )
-        
+
         # Rearrange to (batch_size, n_patches, patch_dim)
         patches = patches.permute(0, 1, 3, 2, 4).contiguous()
-        patches = patches.view(batch_size, self.n_patches, -1)
+        patches = patches.view(batch_size, n_patches, -1)
         
         # Apply patch embedding
         patch_embeddings = self.patch_embedding(patches)
@@ -231,7 +224,7 @@ class AdvancedTransformerMixer(nn.Module):
                  d_model: int = 512,
                  n_heads: int = 8,
                  n_layers: int = 6,
-                 n_outputs: int = 10,
+                 n_outputs: int = 11,
                  dropout: float = 0.1):
         super().__init__()
         
@@ -243,7 +236,7 @@ class AdvancedTransformerMixer(nn.Module):
         self.patch_embedding = SpectrogramPatching(n_mels, patch_size, d_model)
         
         # Positional encoding
-        self.pos_encoding = PositionalEncoding2D(d_model)
+        self.pos_encoding = PositionalEncoding(d_model, dropout)
         
         # Transformer layers
         self.transformer_layers = nn.ModuleList([
@@ -257,25 +250,25 @@ class AdvancedTransformerMixer(nn.Module):
                 nn.Linear(d_model, d_model // 2),
                 nn.GELU(),
                 nn.Dropout(dropout),
-                nn.Linear(d_model // 2, 2)  # Input gain, compression
+                nn.Linear(d_model // 2, 2)  # gain, compression_ratio
             ),
             'eq': nn.Sequential(
                 nn.Linear(d_model, d_model // 2),
                 nn.GELU(),
                 nn.Dropout(dropout),
-                nn.Linear(d_model // 2, 4)  # High, Mid, Low, Presence
+                nn.Linear(d_model // 2, 6)  # attack_time, release_time, high_shelf_gain, high_shelf_freq, low_shelf_gain, low_shelf_freq
             ),
             'effects': nn.Sequential(
                 nn.Linear(d_model, d_model // 2),
                 nn.GELU(),
                 nn.Dropout(dropout),
-                nn.Linear(d_model // 2, 3)  # Reverb, Delay, Stereo
+                nn.Linear(d_model // 2, 2)  # eq_low_gain, eq_mid_gain
             ),
             'output': nn.Sequential(
                 nn.Linear(d_model, d_model // 2),
                 nn.GELU(),
                 nn.Dropout(dropout),
-                nn.Linear(d_model // 2, 1)  # Output level
+                nn.Linear(d_model // 2, 1)  # eq_high_gain
             )
         })
         
@@ -295,8 +288,10 @@ class AdvancedTransformerMixer(nn.Module):
         patch_embeddings = self.patch_embedding(spectrogram)
         # patch_embeddings: (batch_size, n_patches + 1, d_model)
         
+        # Apply positional encoding
+        x = self.pos_encoding(patch_embeddings)
+
         # Apply transformer layers
-        x = patch_embeddings
         for transformer_layer in self.transformer_layers:
             x = transformer_layer(x)
         
@@ -308,17 +303,17 @@ class AdvancedTransformerMixer(nn.Module):
         global_repr = x[:, 0, :]  # First token is class token
         
         # Generate parameter categories
-        dynamics_params = self.parameter_heads['dynamics'](global_repr)
-        eq_params = self.parameter_heads['eq'](global_repr)
-        effects_params = self.parameter_heads['effects'](global_repr)
-        output_params = self.parameter_heads['output'](global_repr)
-        
+        dynamics_params = self.parameter_heads['dynamics'](global_repr)      # 2
+        eq_params = self.parameter_heads['eq'](global_repr)                  # 6
+        effects_params = self.parameter_heads['effects'](global_repr)        # 2
+        output_params = self.parameter_heads['output'](global_repr)          # 1
+
         # Combine all parameters
         raw_params = torch.cat([
-            dynamics_params,  # Input gain, compression
-            eq_params,       # High, Mid, Low, Presence
-            effects_params,  # Reverb, Delay, Stereo
-            output_params    # Output level
+            dynamics_params,   # gain, compression_ratio
+            eq_params,         # attack_time, release_time, high_shelf_gain, high_shelf_freq, low_shelf_gain, low_shelf_freq
+            effects_params,    # eq_low_gain, eq_mid_gain
+            output_params      # eq_high_gain
         ], dim=1)
         
         # Apply parameter constraints

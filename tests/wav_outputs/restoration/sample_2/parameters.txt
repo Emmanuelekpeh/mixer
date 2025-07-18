@@ -1,0 +1,8 @@
+PREDICTED DISTORTION PARAMETERS:
+Noise Level: 0.093
+Reverb Level: 0.141
+Low-pass Cutoff: 0.618
+High-pass Cutoff: 0.041
+Compression Ratio: 0.806
+Clipping Threshold: 0.879
+EQ Imbalance: 0.509

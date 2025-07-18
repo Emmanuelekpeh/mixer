@@ -28,6 +28,11 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Import our models
+# Add src directory to path
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from baseline_cnn import SpectrogramDataset, DEVICE, N_OUTPUTS
 from lstm_mixer import LSTMAudioMixer
 from audio_gan import AudioGANMixer
@@ -41,9 +46,9 @@ logger = logging.getLogger(__name__)
 
 class NewArchitectureTrainer:
     """Trainer for new AI model architectures."""
-      def __init__(self, data_dir: Optional[Path] = None):
-        self.data_dir = data_dir or Path("../data")
-        self.models_dir = Path("../models")
+    def __init__(self, data_dir: Optional[Path] = None):
+        self.data_dir = data_dir or Path("data")
+        self.models_dir = Path("models")
         self.models_dir.mkdir(exist_ok=True)
         
         # Training configuration
@@ -54,7 +59,7 @@ class NewArchitectureTrainer:
             'patience': 8,
             'weight_decay': 1e-5
         }
-        
+
     def load_datasets(self) -> Tuple[DataLoader, DataLoader, DataLoader]:
         """Load training, validation, and test datasets."""
         logger.info("Loading datasets...")
@@ -98,7 +103,8 @@ class NewArchitectureTrainer:
                              weight_decay=self.config['weight_decay'])
         
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, factor=0.5)
-          # Training metrics
+
+        # Training metrics
         train_losses = []
         val_losses = []
         best_val_loss = float('inf')
@@ -116,7 +122,7 @@ class NewArchitectureTrainer:
                 spectrograms, targets = spectrograms.to(DEVICE), targets.to(DEVICE)
                 
                 optimizer.zero_grad()
-                  # Handle different model outputs
+                # Handle different model outputs
                 try:
                     outputs = model(spectrograms)
                     loss = criterion(outputs, targets)
@@ -126,7 +132,6 @@ class NewArchitectureTrainer:
                     optimizer.step()
                     
                     train_loss += loss.item()
-                    
                 except Exception as e:
                     logger.warning(f"Batch {batch_idx} failed: {e}")
                     continue
@@ -134,10 +139,9 @@ class NewArchitectureTrainer:
             # Validation phase
             model.eval()
             val_loss = 0.0
-              with torch.no_grad():
+            with torch.no_grad():
                 for spectrograms, targets in val_loader:
                     spectrograms, targets = spectrograms.to(DEVICE), targets.to(DEVICE)
-                    
                     try:
                         outputs = model(spectrograms)
                         loss = criterion(outputs, targets)
@@ -203,7 +207,7 @@ class NewArchitectureTrainer:
         with torch.no_grad():
             for spectrograms, targets in test_loader:
                 spectrograms, targets = spectrograms.to(DEVICE), targets.to(DEVICE)
-                  try:
+                try:
                     outputs = model(spectrograms)
                     
                     loss = nn.MSELoss()(outputs, targets)
@@ -343,22 +347,37 @@ class NewArchitectureTrainer:
         }
         return techniques_map.get(architecture, [])
     
-    def train_all_architectures(self):
-        """Train all new architectures."""
+    def train_all_architectures(self, model_to_train: Optional[str] = None):
+        """Train all new architectures or a single specified one."""
         logger.info("🚀 Starting New Architecture Training Pipeline")
+        if model_to_train:
+            logger.info(f"Targeted training for: {model_to_train}")
         logger.info("=" * 60)
         
         # Load datasets
         train_loader, val_loader, test_loader = self.load_datasets()
         
         # Define models to train
-        models_to_train = [
+        all_models = [
             ('LSTM Audio Mixer', 'LSTM', LSTMAudioMixer()),
             ('Audio GAN Mixer', 'GAN', AudioGANMixer()),
             ('VAE Audio Mixer', 'VAE', VAEAudioMixer()),
             ('Advanced Transformer Mixer', 'Transformer', AdvancedTransformerMixer()),
             ('ResNet Audio Mixer', 'ResNet', ResNetAudioMixer())
         ]
+
+        models_to_train = all_models
+        if model_to_train:
+            model_to_train_normalized = model_to_train.lower().replace(' ', '_')
+            models_to_train = [
+                m for m in all_models 
+                if m[0].lower().replace(' ', '_') == model_to_train_normalized
+            ]
+            if not models_to_train:
+                logger.error(f"❌ Model '{model_to_train}' not found. Available models are:")
+                for name, _, _ in all_models:
+                    logger.error(f"  - {name.lower().replace(' ', '_')}")
+                return
         
         results = []
         successful_models = []
@@ -435,8 +454,17 @@ class NewArchitectureTrainer:
 
 def main():
     """Main training pipeline."""
+    import argparse
+    parser = argparse.ArgumentParser(description="Train new AI model architectures.")
+    parser.add_argument(
+        "--model", 
+        type=str, 
+        help="Name of the single model to train (e.g., 'lstm_audio_mixer', 'audio_gan_mixer', etc.)."
+    )
+    args = parser.parse_args()
+
     trainer = NewArchitectureTrainer()
-    trainer.train_all_architectures()
+    trainer.train_all_architectures(model_to_train=args.model)
 
 if __name__ == "__main__":
     main()

@@ -65,7 +65,11 @@ class SpectrogramEncoder(nn.Module):
         
     def forward(self, spectrogram):
         # spectrogram: (batch_size, n_mels, time_steps)
-        x = spectrogram.unsqueeze(1)  # Add channel dimension
+        # Check if we need to add channel dimension
+        if spectrogram.dim() == 3:
+            x = spectrogram.unsqueeze(1)  # Add channel dimension: (batch_size, 1, n_mels, time_steps)
+        else:
+            x = spectrogram  # Already has channel dimension
         
         # Apply convolutions
         x = self.conv_layers(x)
@@ -140,7 +144,7 @@ class VAELatentSpace(nn.Module):
 class MixingDecoder(nn.Module):
     """Decoder network for latent space to mixing parameters."""
     
-    def __init__(self, latent_dim: int = 64, n_outputs: int = 10, hidden_dim: int = 256):
+    def __init__(self, latent_dim: int = 64, n_outputs: int = 11, hidden_dim: int = 256):
         super().__init__()
         self.latent_dim = latent_dim
         self.n_outputs = n_outputs
@@ -156,30 +160,31 @@ class MixingDecoder(nn.Module):
             nn.Dropout(0.3)
         )
         
-        # Specialized heads for different parameter categories
-        self.gain_head = nn.Linear(hidden_dim, 2)  # Input gain, output level
-        self.dynamics_head = nn.Linear(hidden_dim, 1)  # Compression
-        self.eq_head = nn.Linear(hidden_dim, 4)  # High, Mid, Low, Presence
-        self.effects_head = nn.Linear(hidden_dim, 3)  # Reverb, Delay, Stereo width
+        # Specialized heads for different parameter categories to get 11 total
+        self.gain_head = nn.Linear(hidden_dim, 2)      # gain, compression_ratio
+        self.timing_head = nn.Linear(hidden_dim, 2)    # attack_time, release_time  
+        self.high_shelf_head = nn.Linear(hidden_dim, 2)  # high_shelf_gain, high_shelf_freq
+        self.low_shelf_head = nn.Linear(hidden_dim, 2)   # low_shelf_gain, low_shelf_freq
+        self.eq_head = nn.Linear(hidden_dim, 3)          # eq_low_gain, eq_mid_gain, eq_high_gain
         
     def forward(self, latent_code):
         """Decode latent code to mixing parameters."""
         shared_features = self.shared_decoder(latent_code)
         
         # Generate parameter components
-        gain_params = self.gain_head(shared_features)
-        dynamics_params = self.dynamics_head(shared_features)
-        eq_params = self.eq_head(shared_features)
-        effects_params = self.effects_head(shared_features)
+        gain_params = self.gain_head(shared_features)          # 2 params
+        timing_params = self.timing_head(shared_features)      # 2 params
+        high_shelf_params = self.high_shelf_head(shared_features)  # 2 params
+        low_shelf_params = self.low_shelf_head(shared_features)    # 2 params
+        eq_params = self.eq_head(shared_features)              # 3 params
         
-        # Combine all parameters
+        # Combine all parameters (2+2+2+2+3 = 11 total)
         raw_params = torch.cat([
-            gain_params[:, :1],    # Input gain
-            dynamics_params,       # Compression
-            eq_params[:, :3],      # High, Mid, Low EQ
-            eq_params[:, 3:],      # Presence
-            effects_params,        # Reverb, Delay, Stereo
-            gain_params[:, 1:]     # Output level
+            gain_params,           # gain, compression_ratio
+            timing_params,         # attack_time, release_time
+            high_shelf_params,     # high_shelf_gain, high_shelf_freq
+            low_shelf_params,      # low_shelf_gain, low_shelf_freq
+            eq_params             # eq_low_gain, eq_mid_gain, eq_high_gain
         ], dim=1)
         
         return raw_params
@@ -195,7 +200,7 @@ class VAEAudioMixer(nn.Module):
     def __init__(self,
                  n_mels: int = 128,
                  latent_dim: int = 64,
-                 n_outputs: int = 10):
+                 n_outputs: int = 11):
         super().__init__()
         
         self.n_mels = n_mels
@@ -204,7 +209,7 @@ class VAEAudioMixer(nn.Module):
         
         # VAE components
         self.encoder = SpectrogramEncoder(n_mels, latent_dim * 4)  # Higher dim for VAE
-        self.latent_space = VAELatentSpace(256, latent_dim)
+        self.latent_space = VAELatentSpace(latent_dim * 4, latent_dim)
         self.decoder = MixingDecoder(latent_dim, n_outputs)
         
         # Interpolation control
@@ -218,6 +223,17 @@ class VAEAudioMixer(nn.Module):
             spectrogram: (batch_size, n_mels, time_steps)
             return_latent: Whether to return latent representations
         """
+        # Ensure input is 4D [batch, channels, height, width]
+        if spectrogram.dim() == 5:
+            # Remove extra dimensions - could be [batch, 1, 1, height, width] or [batch, 1, channels, height, width]
+            spectrogram = spectrogram.squeeze(1).squeeze(1) if spectrogram.shape[1] == 1 and spectrogram.shape[2] == 1 else spectrogram.squeeze(1)
+        elif spectrogram.dim() == 3:
+            spectrogram = spectrogram.unsqueeze(1)
+        
+        # Final check to ensure we have exactly 4 dimensions
+        while spectrogram.dim() > 4:
+            spectrogram = spectrogram.squeeze(1)
+
         # Encode to features
         features = self.encoder(spectrogram)
         
@@ -232,38 +248,55 @@ class VAEAudioMixer(nn.Module):
         
         if return_latent:
             return constrained_params, latent_code, mu, logvar, kl_loss
-        else:
-            return constrained_params, kl_loss
+        
+        # Always return just the constrained parameters for compatibility with training loop
+        # The KL loss is handled separately in the encoder for VAE training
+        return constrained_params
     
     def _constrain_parameters(self, raw_params):
-        """Apply safe parameter constraints."""
+        """Apply safe parameter constraints for all 11 mixing parameters."""
         constrained = torch.zeros_like(raw_params)
         sigmoid_params = torch.sigmoid(raw_params)
         
-        # Input Gain: 0.2-1.2
-        constrained[:, 0] = sigmoid_params[:, 0] * 1.0 + 0.2
+        # Ensure we have 11 parameters - pad if necessary
+        if raw_params.shape[1] < 11:
+            padding = torch.zeros(raw_params.shape[0], 11 - raw_params.shape[1], device=raw_params.device)
+            raw_params = torch.cat([raw_params, padding], dim=1)
+            sigmoid_params = torch.sigmoid(raw_params)
+            constrained = torch.zeros_like(raw_params)
         
-        # Compression Ratio: 1.0-6.0
-        constrained[:, 1] = sigmoid_params[:, 1] * 5.0 + 1.0
+        # 0. Gain: 0.0-1.0
+        constrained[:, 0] = sigmoid_params[:, 0]
         
-        # EQ parameters: -6.0 to +6.0 dB (conservative)
-        for i in range(2, 5):
-            constrained[:, i] = sigmoid_params[:, i] * 12.0 - 6.0
-            
-        # Presence/Air: 0.0-0.6
-        constrained[:, 5] = sigmoid_params[:, 5] * 0.6
+        # 1. Compression ratio: 0.0-1.0
+        constrained[:, 1] = sigmoid_params[:, 1]
         
-        # Reverb Send: 0.0-0.5
-        constrained[:, 6] = sigmoid_params[:, 6] * 0.5
+        # 2. Attack time: 0.0-1.0
+        constrained[:, 2] = sigmoid_params[:, 2]
         
-        # Delay Send: 0.0-0.4
-        constrained[:, 7] = sigmoid_params[:, 7] * 0.4
+        # 3. Release time: 0.0-1.0
+        constrained[:, 3] = sigmoid_params[:, 3]
         
-        # Stereo Width: 0.6-1.4
-        constrained[:, 8] = sigmoid_params[:, 8] * 0.8 + 0.6
+        # 4. High shelf gain: 0.0-1.0
+        constrained[:, 4] = sigmoid_params[:, 4]
         
-        # Output Level: 0.4-0.8
-        constrained[:, 9] = sigmoid_params[:, 9] * 0.4 + 0.4
+        # 5. High shelf freq: 0.0-1.0
+        constrained[:, 5] = sigmoid_params[:, 5]
+        
+        # 6. Low shelf gain: 0.0-1.0
+        constrained[:, 6] = sigmoid_params[:, 6]
+        
+        # 7. Low shelf freq: 0.0-1.0
+        constrained[:, 7] = sigmoid_params[:, 7]
+        
+        # 8. EQ low gain: 0.0-1.0
+        constrained[:, 8] = sigmoid_params[:, 8]
+        
+        # 9. EQ mid gain: 0.0-1.0
+        constrained[:, 9] = sigmoid_params[:, 9]
+        
+        # 10. EQ high gain: 0.0-1.0
+        constrained[:, 10] = sigmoid_params[:, 10]
         
         return constrained
     
@@ -412,7 +445,7 @@ class VAEAudioDataset(torch.utils.data.Dataset):
         
         # Get target parameters
         track_name = spec_path.stem.replace("_mel_spec", "")
-        target = self.targets.get(track_name, [0.5] * 10)
+        target = self.targets.get(track_name, [0.5] * 11)
         
         # Apply probabilistic augmentation
         if self.probabilistic_augment:
@@ -425,7 +458,7 @@ def create_vae_mixer_model(config: Optional[Dict] = None) -> VAEAudioMixer:
     default_config = {
         'n_mels': 128,
         'latent_dim': 64,
-        'n_outputs': 10
+        'n_outputs': 11
     }
     
     if config:

@@ -65,8 +65,26 @@ class SpectralEncoder(nn.Module):
         self.fc_layers = None
         
     def forward(self, spectrogram):
-        # spectrogram: (batch_size, n_mels, time_steps)
-        x = spectrogram.unsqueeze(1)  # Add channel dimension
+        # Handle various input dimensions robustly
+        x = spectrogram
+        
+        # Ensure input is 4D [batch, channels, height, width]
+        if x.dim() == 5:
+            # Remove extra dimensions
+            while x.dim() > 4 and x.shape[1] == 1:
+                x = x.squeeze(1)
+        elif x.dim() == 3:
+            # spectrogram: (batch_size, n_mels, time_steps) -> add channel dimension
+            x = x.unsqueeze(1)
+        elif x.dim() == 4:
+            # Already correct shape
+            pass
+        else:
+            raise ValueError(f"SpectralEncoder: Unexpected input dimension {x.dim()}. Expected 3D or 4D tensor.")
+        
+        # Final check to ensure we have exactly 4 dimensions
+        while x.dim() > 4:
+            x = x.squeeze(1)
         
         # Apply convolutions
         x = self.conv_layers(x)
@@ -92,7 +110,7 @@ class MixingGenerator(nn.Module):
     def __init__(self, 
                  latent_dim: int = 256,
                  style_dim: int = 64,
-                 n_outputs: int = 10,
+                 n_outputs: int = 11,
                  hidden_dim: int = 512):
         super().__init__()
         self.latent_dim = latent_dim
@@ -103,64 +121,111 @@ class MixingGenerator(nn.Module):
         self.style_embedding = nn.Embedding(10, style_dim)  # 10 different styles
         
         # Generator network
-        input_dim = latent_dim + style_dim
-        self.generator = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
-            nn.ReLU(),
+        self.generator_layers = nn.Sequential(
+            nn.Linear(latent_dim + style_dim, hidden_dim),
+            nn.LeakyReLU(0.2),
             nn.Dropout(0.3),
             
             nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
+            nn.BatchNorm1d(hidden_dim),
+            nn.LeakyReLU(0.2),
             nn.Dropout(0.3),
+            
+            nn.Linear(hidden_dim, n_outputs)
+        )
+        
+    def forward(self, audio_features, style_vector):
+        """Generate mixing parameters from audio and style."""
+        combined_input = torch.cat([audio_features, style_vector], dim=1)
+        raw_params = self.generator_layers(combined_input)
+        return raw_params
+
+class MixingDiscriminator(nn.Module):
+    """Discriminator for validating mixing parameters."""
+    
+    def __init__(self, n_inputs: int = 11, hidden_dim: int = 256):
+        super().__init__()
+        self.n_inputs = n_inputs
+        
+        # Discriminator network
+        self.discriminator_layers = nn.Sequential(
+            nn.Linear(n_inputs, hidden_dim),
+            nn.LeakyReLU(0.2),
             
             nn.Linear(hidden_dim, hidden_dim // 2),
-            nn.ReLU(),
-            nn.Dropout(0.3),
+            nn.LeakyReLU(0.2),
             
-            nn.Linear(hidden_dim // 2, n_outputs)
+            nn.Linear(hidden_dim // 2, 1),
+            nn.Sigmoid()  # Output probability (real vs. fake)
         )
-          # Creative noise injection layers
-        self.noise_layers = nn.ModuleList([
-            nn.Linear(hidden_dim, hidden_dim) for _ in range(3)
-        ])
         
-    def forward(self, audio_features, style_id=None, creativity_factor=0.5):
+    def forward(self, mixing_params):
+        """Classify mixing parameters as real or fake."""
+        validity = self.discriminator_layers(mixing_params)
+        return validity
+
+class AudioGAN(nn.Module):
+    """
+    GAN system for creative audio mixing.
+    
+    Combines a generator and discriminator for adversarial training
+    to produce novel and high-quality mixing parameters.
+    """
+    
+    def __init__(self, 
+                 n_mels: int = 128,
+                 latent_dim: int = 256,
+                 style_dim: int = 64,
+                 n_outputs: int = 11):
+        super().__init__()
+        
+        self.n_mels = n_mels
+        self.latent_dim = latent_dim
+        self.style_dim = style_dim
+        self.n_outputs = n_outputs
+        
+        # GAN components
+        self.encoder = SpectralEncoder(n_mels, latent_dim)
+        self.generator = MixingGenerator(latent_dim, style_dim, n_outputs)
+        self.discriminator = MixingDiscriminator(n_outputs)
+        
+    def forward(self, spectrogram, style_vector=None):
         """
-        Generate mixing parameters with controllable creativity.
+        Forward pass for Audio GAN.
         
         Args:
-            audio_features: (batch_size, latent_dim) - encoded audio features
-            style_id: Optional style conditioning (0-9)
-            creativity_factor: Control randomness/creativity (0.0-1.0)
+            spectrogram: (batch_size, n_mels, time_steps)
+            style_vector: (batch_size, style_dim) - Optional style input
         """
-        batch_size = audio_features.size(0)
+        # Ensure input is 4D [batch, channels, height, width]
+        if spectrogram.dim() == 5:
+            # Remove extra dimensions - could be [batch, 1, 1, height, width] or [batch, 1, channels, height, width]
+            spectrogram = spectrogram.squeeze(1).squeeze(1) if spectrogram.shape[1] == 1 and spectrogram.shape[2] == 1 else spectrogram.squeeze(1)
+        elif spectrogram.dim() == 3:
+            spectrogram = spectrogram.unsqueeze(1)
         
-        # Generate or use provided style
-        if style_id is None:
-            style_id = torch.randint(0, 10, (batch_size,), device=audio_features.device)
-        elif isinstance(style_id, int):
-            style_id = torch.full((batch_size,), style_id, device=audio_features.device)
+        # Final check to ensure we have exactly 4 dimensions
+        while spectrogram.dim() > 4:
+            spectrogram = spectrogram.squeeze(1)
+
+        # Encode spectrogram to get audio features
+        audio_features = self.encoder(spectrogram)
         
-        # Get style embeddings
-        style_features = self.style_embedding(style_id)
-        
-        # Combine audio features with style
-        combined_features = torch.cat([audio_features, style_features], dim=1)
-        
-        # Add creative noise based on creativity factor
-        if creativity_factor > 0:
-            noise_scale = creativity_factor * 0.1
-            creative_noise = torch.randn_like(combined_features) * noise_scale
-            combined_features = combined_features + creative_noise
+        # Create random style vector if not provided
+        if style_vector is None:
+            style_vector = torch.randn(audio_features.size(0), self.style_dim, 
+                                     device=audio_features.device)
         
         # Generate mixing parameters
-        raw_params = self.generator(combined_features)        # Apply creative modulation with additional noise layers
-        for i, noise_layer in enumerate(self.noise_layers):
-            if creativity_factor > 0.3:  # Only apply for higher creativity
-                modulation_input = torch.randn(batch_size, 512,  # Use fixed hidden dimension
-                                             device=raw_params.device)
-                modulation = noise_layer(modulation_input)
-                raw_params = raw_params + modulation[:, :raw_params.size(1)] * creativity_factor * 0.05# Apply parameter constraints using individual parameter handling
+        generated_params = self.generator(audio_features, style_vector)
+        
+        # Apply parameter constraints
+        constrained_params = self._constrain_parameters(generated_params)
+        
+        return constrained_params
+    
+    def _constrain_parameters(self, raw_params):
+        """Constrain raw parameters to valid ranges."""
         constrained_params = torch.zeros_like(raw_params)
         normalized_params = torch.sigmoid(raw_params)
         
@@ -190,108 +255,6 @@ class MixingGenerator(nn.Module):
         constrained_params[:, 9] = normalized_params[:, 9] * 0.6 + 0.3
         
         return constrained_params
-
-class MixingDiscriminator(nn.Module):
-    """Discriminator to validate realistic mixing parameters."""
-    
-    def __init__(self, n_outputs: int = 10, hidden_dim: int = 256):
-        super().__init__()
-        self.n_outputs = n_outputs
-        
-        # Discriminator network
-        self.discriminator = nn.Sequential(
-            nn.Linear(n_outputs, hidden_dim),
-            nn.LeakyReLU(0.2),
-            nn.Dropout(0.3),
-            
-            nn.Linear(hidden_dim, hidden_dim // 2),
-            nn.LeakyReLU(0.2),
-            nn.Dropout(0.3),
-            
-            nn.Linear(hidden_dim // 2, hidden_dim // 4),
-            nn.LeakyReLU(0.2),
-            nn.Dropout(0.3),
-            
-            nn.Linear(hidden_dim // 4, 1),
-            nn.Sigmoid()
-        )
-        
-    def forward(self, mixing_params):
-        """
-        Discriminate between real and generated mixing parameters.
-        
-        Returns:
-            probability: (batch_size, 1) - probability of being real parameters
-        """
-        return self.discriminator(mixing_params)
-
-class AudioGANMixer(nn.Module):
-    """
-    Complete Audio GAN system for creative mixing.
-    
-    Combines encoder, generator, and discriminator for end-to-end
-    creative mixing parameter generation with style control.
-    """
-    
-    def __init__(self,
-                 n_mels: int = 128,
-                 latent_dim: int = 256,
-                 style_dim: int = 64,
-                 n_outputs: int = 10):
-        super().__init__()
-        
-        self.encoder = SpectralEncoder(n_mels, latent_dim)
-        self.generator = MixingGenerator(latent_dim, style_dim, n_outputs)
-        self.discriminator = MixingDiscriminator(n_outputs)
-        
-        # Style mapping for interpretation
-        self.style_names = [
-            "Classical", "Jazz", "Rock", "Electronic", "Hip-Hop",
-            "Ambient", "Folk", "Metal", "Pop", "Experimental"
-        ]
-        
-    def forward(self, spectrogram, style_id=None, creativity_factor=0.5):
-        """
-        Forward pass for creative mixing generation.
-        
-        Args:
-            spectrogram: (batch_size, n_mels, time_steps)
-            style_id: Optional style conditioning
-            creativity_factor: Control creativity level
-        """
-        # Encode audio features
-        audio_features = self.encoder(spectrogram)
-        
-        # Generate creative mixing parameters
-        mixing_params = self.generator(audio_features, style_id, creativity_factor)
-        
-        return mixing_params
-    
-    def style_transfer(self, spectrogram, source_style=None, target_style=None):
-        """
-        Perform style transfer between musical genres.
-        
-        Args:
-            spectrogram: Input audio spectrogram
-            source_style: Source genre style (0-9)
-            target_style: Target genre style (0-9)
-        """
-        # Encode audio features
-        audio_features = self.encoder(spectrogram)
-        
-        # Generate with target style
-        if target_style is None:
-            target_style = random.randint(0, 9)
-        
-        # Use higher creativity for style transfer
-        mixing_params = self.generator(audio_features, target_style, 
-                                     creativity_factor=0.8)
-        
-        return mixing_params, self.style_names[target_style]
-    
-    def discriminate_quality(self, mixing_params):
-        """Evaluate quality/realism of mixing parameters."""
-        return self.discriminator(mixing_params)
 
 class GANLoss(nn.Module):
     """Custom loss function for GAN training."""
@@ -383,7 +346,7 @@ class GANAudioDataset(torch.utils.data.Dataset):
                 torch.FloatTensor(target),
                 torch.LongTensor([style_id]))
 
-def create_audio_gan_model(config: Optional[Dict] = None) -> AudioGANMixer:
+def create_audio_gan_model(config: Optional[Dict] = None) -> AudioGAN:
     """Factory function to create Audio GAN model."""
     default_config = {
         'n_mels': 128,
@@ -395,8 +358,8 @@ def create_audio_gan_model(config: Optional[Dict] = None) -> AudioGANMixer:
     if config:
         default_config.update(config)
     
-    model = AudioGANMixer(**default_config)
-    logger.info(f"Created Audio GAN Mixer with config: {default_config}")
+    model = AudioGAN(**default_config)
+    logger.info(f"Created Audio GAN with config: {default_config}")
     
     return model
 

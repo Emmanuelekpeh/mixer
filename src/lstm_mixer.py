@@ -31,6 +31,7 @@ from typing import Dict, Tuple, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class TemporalAttention(nn.Module):
     """Attention mechanism for temporal sequence processing."""
     
@@ -94,7 +95,7 @@ class LSTMAudioMixer(nn.Module):
                  n_mels: int = 128,
                  hidden_size: int = 256,
                  num_layers: int = 3,
-                 n_outputs: int = 10,
+                 n_outputs: int = 11,  # Corrected to 11
                  dropout: float = 0.3,
                  bidirectional: bool = True):
         super().__init__()
@@ -108,9 +109,9 @@ class LSTMAudioMixer(nn.Module):
         # Convert spectrogram to sequence
         self.spec_to_sequence = SpectrogramToSequence(n_mels, hidden_size)
         
-        # Multi-layer bidirectional LSTM
+        # Multi-layer bidirectional LSTM - accept n_mels directly
         self.lstm = nn.LSTM(
-            input_size=hidden_size,
+            input_size=n_mels,  # Accept mel bands directly
             hidden_size=hidden_size,
             num_layers=num_layers,
             batch_first=True,
@@ -146,7 +147,8 @@ class LSTMAudioMixer(nn.Module):
             0.0,  # Reverb Send (0-1)
             0.0,  # Delay Send (0-1)
             0.0,  # Stereo Width (0-2)
-            0.0   # Output Level (0-1)
+            0.0,   # Output Level (0-1)
+            0.0, # Panning
         ]))
         
         self.register_buffer('param_maxs', torch.tensor([
@@ -159,27 +161,39 @@ class LSTMAudioMixer(nn.Module):
             1.0,  # Reverb Send
             1.0,  # Delay Send
             2.0,  # Stereo Width
-            1.0   # Output Level
+            1.0,   # Output Level
+            1.0,  # Panning
         ]))
         
-    def forward(self, spectrogram):
+    def forward(self, spectrogram: torch.Tensor): # Fixed signature
         """
         Forward pass for LSTM audio mixer.
         
         Args:
-            spectrogram: (batch_size, n_mels, time_steps)
+            spectrogram: (batch_size, time_steps, n_mels) or (batch_size, n_mels, time_steps)
             
         Returns:
             mixing_params: (batch_size, n_outputs) - constrained mixing parameters
         """
         batch_size = spectrogram.size(0)
         
-        # Convert spectrogram to sequence
-        sequence = self.spec_to_sequence(spectrogram)
-        # sequence: (batch_size, time_steps, hidden_size)
+        # Handle different input shapes from collate_fn
+        if spectrogram.dim() == 3 and spectrogram.size(-1) == self.n_mels:
+            # Input is [B, 500, 40] - already in sequence format
+            sequence_input = spectrogram
+        elif spectrogram.dim() == 3 and spectrogram.size(1) == self.n_mels:
+            # Input is [B, 40, 500] - need to transpose to [B, 500, 40]
+            sequence_input = spectrogram.transpose(1, 2)
+        else:
+            # Fallback: convert spectrogram to sequence using conv layers then transpose
+            if spectrogram.dim() == 4:
+                spectrogram = spectrogram.squeeze(1)  # Remove channel dim if present
+            # Use spec_to_sequence and transpose to get [B, time, features]
+            conv_features = self.spec_to_sequence(spectrogram)  # [B, hidden_size, time]
+            sequence_input = conv_features.transpose(1, 2)  # [B, time, hidden_size]
         
-        # LSTM processing
-        lstm_output, (hidden, cell) = self.lstm(sequence)
+        # LSTM processing - input should be [B, seq_len, features]
+        lstm_output, (hidden, cell) = self.lstm(sequence_input)
         # lstm_output: (batch_size, time_steps, hidden_size * num_directions)
         
         # Apply temporal attention

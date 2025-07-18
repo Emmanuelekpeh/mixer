@@ -1,11 +1,12 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useDropzone } from 'react-dropzone';
-import { FiUpload, FiUser, FiMusic, FiTrendingUp } from 'react-icons/fi';
+import { FiUpload, FiUser, FiMusic, FiTrendingUp, FiCpu, FiStar } from 'react-icons/fi';
 import { GiSkullCrossedBones } from 'react-icons/gi';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { apiGet } from '../utils/api';
 
 const SetupContainer = styled(motion.div)`
   max-width: 800px;
@@ -319,10 +320,225 @@ const ChainDivider = styled.div`
   position: relative;
 `;
 
+const ModelsSection = styled(motion.div)`
+  margin: 30px 0;
+`;
+
+const ModelsHeader = styled.div`
+  text-align: center;
+  margin-bottom: 20px;
+`;
+
+const ModelsTitle = styled.h2`
+  font-family: var(--font-subtitle);
+  font-size: 2rem;
+  color: var(--text-gold);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+`;
+
+const ModelsSubtitle = styled.p`
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-family: var(--font-body);
+`;
+
+const ModelsControls = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+`;
+
+const FilterButton = styled(motion.button)`
+  background: ${props => props.active ? 'var(--primary-gold)' : 'rgba(30, 30, 30, 0.8)'};
+  color: ${props => props.active ? 'black' : 'var(--text-light)'};
+  border: 1px solid ${props => props.active ? 'var(--primary-gold)' : 'rgba(255, 255, 255, 0.2)'};
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  
+  &:hover {
+    background: ${props => props.active ? 'var(--primary-gold)' : 'rgba(255, 215, 0, 0.2)'};
+    border-color: var(--primary-gold);
+    transform: translateY(-1px);
+  }
+`;
+
+const SortSelect = styled.select`
+  background: rgba(30, 30, 30, 0.8);
+  color: var(--text-light);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  
+  &:focus {
+    outline: none;
+    border-color: var(--primary-gold);
+  }
+  
+  option {
+    background: #1a1a1a;
+    color: var(--text-light);
+  }
+`;
+
+const ModelsCount = styled.div`
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+`;
+
+const ModelsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+`;
+
+const ModelCard = styled(motion.div)`
+  background: rgba(30, 30, 30, 0.8);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 215, 0, 0.3);
+  }
+`;
+
+const ModelHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+`;
+
+const ModelName = styled.h3`
+  font-family: var(--font-subtitle);
+  font-size: 1.3rem;
+  color: var(--text-light);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+`;
+
+const ModelBadge = styled.span`
+  background: ${props => props.isNew ? 'linear-gradient(45deg, #ff6b6b, #ff8e53)' : 'rgba(255, 215, 0, 0.2)'};
+  color: ${props => props.isNew ? 'white' : 'var(--primary-gold)'};
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid ${props => props.isNew ? 'rgba(255, 107, 107, 0.5)' : 'rgba(255, 215, 0, 0.3)'};
+  animation: ${props => props.isNew ? 'pulse 2s infinite' : 'none'};
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+`;
+
+const ModelStats = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+`;
+
+const StatItem = styled.div`
+  text-align: center;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+`;
+
+const StatValue = styled.div`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--primary-gold);
+  font-family: var(--font-subtitle);
+`;
+
+const StatLabel = styled.div`
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+`;
+
+const ModelInfo = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+`;
+
+const ModelArchitecture = styled.span`
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+`;
+
+const ModelGeneration = styled.span`
+  color: var(--hiphop-orange);
+  font-size: 0.9rem;
+  font-weight: 600;
+`;
+
+const LoadingModels = styled.div`
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+`;
+
+const ModelsError = styled.div`
+  text-align: center;
+  padding: 20px;
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 8px;
+  margin: 20px 0;
+`;
+
 const EnhancedTournamentSetup = ({ user, onUserLogin, onTournamentStart }) => {
   const [username, setUsername] = useState(user?.username || user?.name || '');
   const [audioFile, setAudioFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [models, setModels] = useState([]);
+  const [modelsLoading, setModelsLoading] = useState(true);
+  const [modelsError, setModelsError] = useState(null);
+  const [modelFilter, setModelFilter] = useState('all');
+  const [modelSort, setModelSort] = useState('elo');
   const navigate = useNavigate();
 
   const onDrop = useCallback(acceptedFiles => {
@@ -344,6 +560,43 @@ const EnhancedTournamentSetup = ({ user, onUserLogin, onTournamentStart }) => {
     },
     maxFiles: 1
   });
+
+  // Fetch available models on component mount
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        setModelsLoading(true);
+        setModelsError(null);
+        
+        const response = await apiGet('/api/models');
+        const data = await response.json();
+        
+        if (data.success) {
+          setModels(data.models || []);
+          console.log('✅ Loaded models:', data.models?.length || 0);
+        } else {
+          throw new Error(data.message || 'Failed to fetch models');
+        }
+      } catch (error) {
+        console.error('❌ Failed to fetch models:', error);
+        setModelsError(error.message);
+        toast.error('Failed to load AI models');
+      } finally {
+        setModelsLoading(false);
+      }
+    };
+
+    fetchModels();
+  }, []);
+
+  // Helper function to determine if a model is "new" (created in last 7 days)
+  const isNewModel = (model) => {
+    if (!model.last_used) return true; // No usage history = new
+    const lastUsed = new Date(model.last_used);
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return lastUsed > weekAgo || model.total_battles < 10;
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
       if (!username.trim()) {
@@ -508,6 +761,91 @@ const EnhancedTournamentSetup = ({ user, onUserLogin, onTournamentStart }) => {
             </FeatureDescription>
           </FeatureCard>
         </FeatureCards>
+
+        <ChainDivider />
+
+        {/* AI Models Section */}
+        <ModelsSection
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <ModelsHeader>
+            <ModelsTitle>
+              <FiCpu size={24} style={{ verticalAlign: 'middle', marginRight: '10px' }} />
+              AI MIXING MODELS
+            </ModelsTitle>
+            <ModelsSubtitle>
+              These AI models will compete to create the perfect mix of your track
+            </ModelsSubtitle>
+          </ModelsHeader>
+
+          {modelsLoading && (
+            <LoadingModels>
+              <FiCpu size={32} style={{ marginBottom: '10px', display: 'block', margin: '0 auto 10px' }} />
+              Loading AI models...
+            </LoadingModels>
+          )}
+
+          {modelsError && (
+            <ModelsError>
+              <strong>Failed to load AI models:</strong> {modelsError}
+              <br />
+              <small>The tournament will still work with default models.</small>
+            </ModelsError>
+          )}
+
+          {!modelsLoading && !modelsError && models.length > 0 && (
+            <ModelsGrid>
+              {models.slice(0, 6).map((model, index) => (
+                <ModelCard
+                  key={model.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <ModelHeader>
+                    <ModelName>{model.nickname || model.name}</ModelName>
+                    {isNewModel(model) && (
+                      <ModelBadge isNew={true}>NEW</ModelBadge>
+                    )}
+                    {model.elo_rating > 1400 && !isNewModel(model) && (
+                      <ModelBadge isNew={false}>
+                        <FiStar size={12} style={{ marginRight: '2px' }} />
+                        PRO
+                      </ModelBadge>
+                    )}
+                  </ModelHeader>
+
+                  <ModelStats>
+                    <StatItem>
+                      <StatValue>{model.elo_rating}</StatValue>
+                      <StatLabel>ELO Rating</StatLabel>
+                    </StatItem>
+                    <StatItem>
+                      <StatValue>{model.win_rate}%</StatValue>
+                      <StatLabel>Win Rate</StatLabel>
+                    </StatItem>
+                  </ModelStats>
+
+                  <ModelInfo>
+                    <ModelArchitecture>{model.architecture}</ModelArchitecture>
+                    <ModelGeneration>Gen {model.generation}</ModelGeneration>
+                  </ModelInfo>
+                </ModelCard>
+              ))}
+            </ModelsGrid>
+          )}
+
+          {!modelsLoading && !modelsError && models.length === 0 && (
+            <ModelsError>
+              No AI models found. Please check the backend configuration.
+            </ModelsError>
+          )}
+        </ModelsSection>
+
+        <ChainDivider />
 
         <ButtonContainer>
           <GrungeButton

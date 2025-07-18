@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Improved Tournament Formats</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin: 10px 0;
+        }
+        
+        .formats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .format-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .format-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .format-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .format-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        
+        .format-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .format-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .format-description {
+            margin: 15px 0;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+        
+        .create-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .create-button:hover {
+            background: linear-gradient(45deg, #ee5a24, #ff6b6b);
+            transform: scale(1.02);
+        }
+        
+        .comparison-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .comparison-table th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: bold;
+        }
+        
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .pros, .cons {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .pros h4 {
+            color: #2ecc71;
+            margin-top: 0;
+        }
+        
+        .cons h4 {
+            color: #e74c3c;
+            margin-top: 0;
+        }
+        
+        .pros ul, .cons ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .current-issues {
+            background: rgba(231, 76, 60, 0.2);
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .current-issues h3 {
+            margin-top: 0;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 Improved Tournament Formats</h1>
+            <p>Choose the perfect tournament structure for your AI model battles</p>
+            <p><strong>Current Status:</strong> 10 AI models integrated and ready for battle!</p>
+        </div>
+        
+        <div class="current-issues">
+            <h3>🚨 Current Tournament Issues</h3>
+            <ul>
+                <li><strong>Too Many Battles:</strong> 28 pairs in a 5-round tournament is excessive</li>
+                <li><strong>Poor User Experience:</strong> Sequential voting through all models is tedious</li>
+                <li><strong>No Clear Structure:</strong> More like round-robin than proper elimination</li>
+                <li><strong>Time Consuming:</strong> Takes too long to complete a tournament</li>
+            </ul>
+        </div>
+        
+        <div class="formats-grid">
+            <div class="format-card">
+                <div class="format-header">
+                    <div class="format-icon">⚡</div>
+                    <h3 class="format-title">Quick Battle</h3>
+                </div>
+                <div class="format-stats">
+                    <div class="stat">
+                        <span class="stat-value">3</span>
+                        <span class="stat-label">Battles</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">5-10</span>
+                        <span class="stat-label">Minutes</span>
+                    </div>
+                </div>
+                <div class="format-description">
+                    Perfect for quick testing and casual battles. Random matchups between models with immediate results.
+                </div>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>✅ Pros</h4>
+                        <ul>
+                            <li>Very fast</li>
+                            <li>Great for testing</li>
+                            <li>Low commitment</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>❌ Cons</h4>
+                        <ul>
+                            <li>Limited scope</li>
+                            <li>Random matchups</li>
+                            <li>No clear winner</li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="create-button" onclick="createTournament('quick')">Create Quick Battle</button>
+            </div>
+            
+            <div class="format-card">
+                <div class="format-header">
+                    <div class="format-icon">🏆</div>
+                    <h3 class="format-title">Bracket Tournament</h3>
+                </div>
+                <div class="format-stats">
+                    <div class="stat">
+                        <span class="stat-value">7</span>
+                        <span class="stat-label">Battles</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">15-20</span>
+                        <span class="stat-label">Minutes</span>
+                    </div>
+                </div>
+                <div class="format-description">
+                    Classic single-elimination bracket. Clean, organized, and produces a clear champion. Perfect balance of engagement and efficiency.
+                </div>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>✅ Pros</h4>
+                        <ul>
+                            <li>Clear winner</li>
+                            <li>Familiar format</li>
+                            <li>Exciting progression</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>❌ Cons</h4>
+                        <ul>
+                            <li>Early elimination</li>
+                            <li>Limited matches per model</li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="create-button" onclick="createTournament('balanced')">Create Bracket Tournament</button>
+            </div>
+            
+            <div class="format-card">
+                <div class="format-header">
+                    <div class="format-icon">🎯</div>
+                    <h3 class="format-title">Architecture Showdown</h3>
+                </div>
+                <div class="format-stats">
+                    <div class="stat">
+                        <span class="stat-value">15</span>
+                        <span class="stat-label">Battles</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">10-15</span>
+                        <span class="stat-label">Minutes</span>
+                    </div>
+                </div>
+                <div class="format-description">
+                    Best model from each architecture competes. CNN vs Transformer vs GAN vs VAE - see which approach works best!
+                </div>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>✅ Pros</h4>
+                        <ul>
+                            <li>Architecture comparison</li>
+                            <li>Scientific insight</li>
+                            <li>Unique matchups</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>❌ Cons</h4>
+                        <ul>
+                            <li>Limited model participation</li>
+                            <li>May favor certain types</li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="create-button" onclick="createTournament('architecture')">Create Architecture Showdown</button>
+            </div>
+            
+            <div class="format-card">
+                <div class="format-header">
+                    <div class="format-icon">🎲</div>
+                    <h3 class="format-title">Swiss System</h3>
+                </div>
+                <div class="format-stats">
+                    <div class="stat">
+                        <span class="stat-value">12</span>
+                        <span class="stat-label">Battles</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">20-30</span>
+                        <span class="stat-label">Minutes</span>
+                    </div>
+                </div>
+                <div class="format-description">
+                    Everyone plays the same number of rounds. Fair, competitive, and great for ranking all models accurately.
+                </div>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>✅ Pros</h4>
+                        <ul>
+                            <li>Fair to all models</li>
+                            <li>Good ranking system</li>
+                            <li>No early elimination</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>❌ Cons</h4>
+                        <ul>
+                            <li>More complex</li>
+                            <li>Longer duration</li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="create-button" onclick="createTournament('competitive')">Create Swiss Tournament</button>
+            </div>
+            
+            <div class="format-card">
+                <div class="format-header">
+                    <div class="format-icon">🔄</div>
+                    <h3 class="format-title">Round Robin</h3>
+                </div>
+                <div class="format-stats">
+                    <div class="stat">
+                        <span class="stat-value">15</span>
+                        <span class="stat-label">Battles</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">30-45</span>
+                        <span class="stat-label">Minutes</span>
+                    </div>
+                </div>
+                <div class="format-description">
+                    Every model plays every other model. Most comprehensive format for thorough comparison and analysis.
+                </div>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>✅ Pros</h4>
+                        <ul>
+                            <li>Most thorough</li>
+                            <li>Complete data</li>
+                            <li>Best for analysis</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>❌ Cons</h4>
+                        <ul>
+                            <li>Time consuming</li>
+                            <li>Many battles</li>
+                            <li>Can be overwhelming</li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="create-button" onclick="createTournament('comprehensive')">Create Round Robin</button>
+            </div>
+        </div>
+        
+        <div class="comparison-section">
+            <h2>📊 Format Comparison</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Format</th>
+                        <th>Battles</th>
+                        <th>Duration</th>
+                        <th>Best For</th>
+                        <th>Complexity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Quick Battle</td>
+                        <td>3</td>
+                        <td>5-10 min</td>
+                        <td>Testing & Fun</td>
+                        <td>⭐</td>
+                    </tr>
+                    <tr>
+                        <td>Bracket Tournament</td>
+                        <td>7</td>
+                        <td>15-20 min</td>
+                        <td>Finding Champion</td>
+                        <td>⭐⭐</td>
+                    </tr>
+                    <tr>
+                        <td>Architecture Showdown</td>
+                        <td>15</td>
+                        <td>10-15 min</td>
+                        <td>Comparing Approaches</td>
+                        <td>⭐⭐</td>
+                    </tr>
+                    <tr>
+                        <td>Swiss System</td>
+                        <td>12</td>
+                        <td>20-30 min</td>
+                        <td>Fair Competition</td>
+                        <td>⭐⭐⭐</td>
+                    </tr>
+                    <tr>
+                        <td>Round Robin</td>
+                        <td>15</td>
+                        <td>30-45 min</td>
+                        <td>Complete Analysis</td>
+                        <td>⭐⭐⭐⭐</td>
+                    </tr>
+                    <tr style="background: rgba(231, 76, 60, 0.2);">
+                        <td><strong>Current System</strong></td>
+                        <td><strong>28</strong></td>
+                        <td><strong>60+ min</strong></td>
+                        <td><strong>Overwhelming</strong></td>
+                        <td><strong>⭐⭐⭐⭐⭐</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        function createTournament(format) {
+            alert(`🚀 Creating ${format} tournament!\n\nThis would integrate with your tournament API to create a new tournament with the selected format.`);
+            
+            // In a real implementation, this would call your API:
+            // fetch('/api/tournaments/create-improved', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({
+            //         name: `AI Model ${format} Tournament`,
+            //         format: format,
+            //         description: `Tournament using ${format} format`
+            //     })
+            // });
+        }
+    </script>
+</body>
+</html>

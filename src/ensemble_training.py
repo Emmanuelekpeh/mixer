@@ -307,7 +307,7 @@ def optimize_ensemble_hyperparameters(models, model_names, train_loader, val_loa
                 
                 for pred, weight in zip(all_predictions, weights):
                     ensemble_predictions += weight * pred
-                  targets = []
+                targets = []
                 with torch.no_grad():
                     for data, target in test_loader:
                         targets.append(target.cpu().numpy())

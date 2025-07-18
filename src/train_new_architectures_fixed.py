@@ -261,7 +261,7 @@ def main():
     logger.info("=" * 60)
     
     # Load datasets
-    data_dir = Path("../data")
+    data_dir = Path(r"C:\Users\emman\Projects\mixer\data")
     train_dataset = SpectrogramDataset(data_dir / "train", targets_file=data_dir / "targets_example.json", augment=True)
     val_dataset = SpectrogramDataset(data_dir / "train", targets_file=data_dir / "targets_example.json", augment=False)
     test_dataset = SpectrogramDataset(data_dir / "train", targets_file=data_dir / "targets_example.json", augment=False)

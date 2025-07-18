@@ -537,6 +537,32 @@ class EnhancedTournamentEngine:
     # Compatibility methods for existing API
     def get_model_list(self) -> List[Dict[str, Any]]:
         """Get list of available models for API compatibility"""
+        # Use database models if available, otherwise fall back to file system models
+        if self.db_service:
+            try:
+                db_models = self.db_service.get_all_models()
+                if db_models:
+                    # Convert database models to the expected format
+                    models_list = []
+                    for model in db_models:
+                        model_dict = {
+                            "id": model.id,
+                            "name": model.name,
+                            "nickname": model.nickname or model.name,
+                            "architecture": model.architecture,
+                            "generation": model.generation,
+                            "elo_rating": model.elo_rating,
+                            "tier": model.tier,
+                            "specializations": model.specializations or [],
+                            "capabilities": model.capabilities or {},
+                            "is_active": model.is_active
+                        }
+                        models_list.append(model_dict)
+                    return models_list
+            except Exception as e:
+                logger.error(f"Failed to get models from database: {e}")
+        
+        # Fallback to file system models
         return self.models
     
     def create_user_profile(self, user_id: str, username: str) -> Dict[str, Any]:

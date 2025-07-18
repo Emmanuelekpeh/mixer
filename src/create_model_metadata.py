@@ -19,6 +19,7 @@ import torch
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+import glob
 
 def create_model_metadata(
     model_path: str,
@@ -108,31 +109,81 @@ def save_metadata(model_path: str, metadata: Dict[str, Any]) -> str:
     return str(metadata_file)
 
 def main():
-    parser = argparse.ArgumentParser(description="Create metadata for model files")
-    parser.add_argument("model_path", help="Path to the model file")
+    parser = argparse.ArgumentParser(description="Create metadata for model files or directories")
+    parser.add_argument("path", help="Path to model file or directory")
     parser.add_argument("--name", help="Name of the model")
-    parser.add_argument("--arch", default="cnn", help="Architecture type (cnn, transformer, etc.)")
-    parser.add_argument("--desc", help="Description of the model")
-    parser.add_argument("--specializations", help="Comma-separated list of specializations")
+    parser.add_argument("--arch", default="cnn", help="Architecture type")
+    parser.add_argument("--desc", help="Description")
+    parser.add_argument("--specializations", help="Comma-separated specializations")
+    parser.add_argument("--dir", action='store_true', help="Process directory")
     
     args = parser.parse_args()
     
-    # Parse specializations
-    specializations = None
-    if args.specializations:
-        specializations = [s.strip() for s in args.specializations.split(",")]
-    
-    # Create metadata
-    metadata = create_model_metadata(
-        model_path=args.model_path,
-        name=args.name,
-        architecture=args.arch,
-        description=args.desc,
-        specializations=specializations
-    )
-    
-    # Save metadata
-    save_metadata(args.model_path, metadata)
+    if args.dir:
+        model_files = glob.glob(os.path.join(args.path, '*.pth'))
+        for model_path in model_files:
+            model_file = Path(model_path)
+            metadata_file = model_file.with_suffix('.json')
+            if metadata_file.exists():
+                print(f"Skipping {model_file}, metadata exists")
+                continue
+            
+            name = model_file.stem.replace('_', ' ').title()
+            arch = infer_arch_from_name(model_file.stem)
+            desc = f"{arch.upper()} model for audio mixing"
+            specs = infer_specs_from_name(model_file.stem)
+            
+            metadata = create_model_metadata(
+                model_path,
+                name=name,
+                architecture=arch,
+                description=desc,
+                specializations=specs
+            )
+            save_metadata(model_path, metadata)
+    else:
+        # existing code
+        specializations = None
+        if args.specializations:
+            specializations = [s.strip() for s in args.specializations.split(",")]
+        
+        metadata = create_model_metadata(
+            model_path=args.path,
+            name=args.name,
+            architecture=args.arch,
+            description=args.desc,
+            specializations=specializations
+        )
+        save_metadata(args.path, metadata)
+
+def infer_arch_from_name(name: str) -> str:
+    name_lower = name.lower()
+    if 'lstm' in name_lower:
+        return 'lstm'
+    elif 'gan' in name_lower:
+        return 'gan'
+    elif 'vae' in name_lower:
+        return 'vae'
+    elif 'transformer' in name_lower:
+        return 'transformer'
+    elif 'resnet' in name_lower:
+        return 'resnet'
+    return 'cnn'
+
+def infer_specs_from_name(name: str) -> List[str]:
+    name_lower = name.lower()
+    specs = []
+    if 'lstm' in name_lower:
+        specs = ['temporal_processing', 'sequence_aware']
+    elif 'gan' in name_lower:
+        specs = ['generative_mixing', 'creative_effects']
+    elif 'vae' in name_lower:
+        specs = ['latent_space_mixing', 'smooth_transitions']
+    elif 'transformer' in name_lower:
+        specs = ['attention_based', 'context_aware']
+    elif 'resnet' in name_lower:
+        specs = ['deep_processing', 'residual_learning']
+    return specs
 
 if __name__ == "__main__":
     main()

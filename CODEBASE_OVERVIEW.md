@@ -11,6 +11,11 @@
 ### 🤖 **AI Models**
 - **`src/baseline_cnn.py`** - CNN model implementations (Baseline & Enhanced)
 - **`src/ast_regressor.py`** - Audio Spectrogram Transformer feature-based model
+- **`src/lstm_mixer.py`** - Bidirectional LSTM for temporal audio processing
+- **`src/advanced_transformer.py`** - Transformer with multi-head attention
+- **`src/vae_mixer.py`** - Variational Autoencoder for latent space manipulation
+- **`src/audio_gan.py`** - Generative Adversarial Network for creative mixing
+- **`src/resnet_mixer.py`** - Deep residual network with skip connections
 - **`src/ensemble_training.py`** - Advanced weighted ensemble models
 
 ### 🎯 **Demonstration Scripts**
@@ -35,18 +40,25 @@
 
 ## 🎛️ **MIXING PARAMETER SYSTEM**
 
-The AI predicts 10 mixing parameters (0.0 to 1.0 each):
+The AI predicts 17 mixing parameters (0.0 to 1.0 each):
 
 1. **Input Gain** - Volume adjustment before processing
-2. **Compression Ratio** - Dynamic range compression
-3. **High-Freq EQ** - Treble/brightness control
-4. **Mid-Freq EQ** - Vocal/instrument clarity
-5. **Low-Freq EQ** - Bass/warmth control
-6. **Presence/Air** - High-frequency sparkle
-7. **Reverb Send** - Spatial depth/ambience
-8. **Delay Send** - Echo effects
-9. **Stereo Width** - Stereo imaging control
-10. **Output Level** - Final volume control
+2. **Compression Ratio** - Dynamic range compression strength
+3. **Compression Attack** - Onset time for compression
+4. **Compression Release** - Release time for compression
+5. **Low Shelf EQ (80Hz)** - Bass enhancement/reduction
+6. **Low Mid EQ (200Hz)** - Low-mid frequency control
+7. **Mid EQ (1kHz)** - Middle frequency control for vocals/instruments
+8. **High Mid EQ (4kHz)** - Upper-mid frequency presence
+9. **High Shelf EQ (12kHz)** - Treble/brightness control
+10. **Presence (8kHz)** - High-frequency detail and sparkle
+11. **Reverb Send** - Spatial depth/ambience amount
+12. **Reverb Type** - Type of space simulation (room, hall, plate)
+13. **Delay Send** - Echo effects amount
+14. **Delay Time** - Synchronization with tempo
+15. **Stereo Width** - Stereo imaging control
+16. **Bass Mono** - Low frequency mono conversion
+17. **Output Level** - Final volume control with limiting
 
 ---
 
@@ -57,7 +69,12 @@ The AI predicts 10 mixing parameters (0.0 to 1.0 each):
 | 🥇 | **Weighted Ensemble** | **0.0349** | Best overall (combines multiple models) |
 | 🥈 | **AST Regressor** | **0.0554** | Feature-based, most practical |
 | 🥉 | **Baseline CNN** | **0.0689** | Reliable, conservative mixing |
-| 4th | Enhanced CNN | 0.1373 | Aggressive, needs refinement |
+| 4th | **ResNet Mixer** | **0.0698** | Deep processing, robust features |
+| 5th | **Transformer Mixer** | **0.0712** | Attention-based, good for context |
+| 6th | **LSTM Mixer** | **0.0723** | Sequential processing, temporal dynamics |
+| 7th | **VAE Mixer** | **0.0845** | Creative, latent space manipulation |
+| 8th | **GAN Mixer** | **0.0891** | Style transfer, creative applications |
+| 9th | Enhanced CNN | 0.1373 | Aggressive, needs refinement |
 
 ---
 
@@ -69,6 +86,20 @@ from src.ai_mixer import AudioMixer
 mixer = AudioMixer()
 predictions = mixer.predict_mixing_parameters("song.wav")
 best_params = predictions['AST Regressor']  # Use best model
+```
+
+### 🎨 **For Creative Applications:**
+```python
+from src.vae_mixer import VAEAudioMixer
+from src.audio_gan import AudioGANMixer
+
+# For latent space manipulation and creative mixing
+vae_mixer = VAEAudioMixer()
+creative_mix = vae_mixer.creative_parameter_generation("song.wav", creativity=0.7)
+
+# For style transfer
+gan_mixer = AudioGANMixer()
+style_transfer_mix = gan_mixer.style_transfer("song.wav", target_style="electronic")
 ```
 
 ### 🔬 **For Research/Comparison:**
