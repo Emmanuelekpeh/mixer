@@ -1,0 +1,26 @@
+{
+  "baseline_cnn": {
+    "original_size_mb": 4.878631591796875,
+    "deployment_strategy": "full"
+  },
+  "enhanced_cnn": {
+    "original_size_mb": 11.663836479187012,
+    "deployment_strategy": "full"
+  },
+  "improved_baseline_cnn": {
+    "original_size_mb": 4.878897666931152,
+    "deployment_strategy": "full"
+  },
+  "improved_enhanced_cnn": {
+    "original_size_mb": 3.075533866882324,
+    "deployment_strategy": "full"
+  },
+  "retrained_enhanced_cnn": {
+    "original_size_mb": 11.664994239807129,
+    "deployment_strategy": "full"
+  },
+  "weighted_ensemble": {
+    "original_size_mb": 36.1572208404541,
+    "deployment_strategy": "full"
+  }
+}

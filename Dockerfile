@@ -19,6 +19,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
+# Remove any dev SQLite database to start fresh
+RUN rm -f tournament_webapp/backend/data/tournament.db || true
+
 # Copy requirements first for better layer caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt && \
