@@ -2098,3 +2098,5 @@ async def get_model_files():
     except Exception as e:
         logger.error(f"Error getting model files: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get model files: {str(e)}")
+
+initialize_tournament_engine()
