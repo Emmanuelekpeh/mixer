@@ -19,9 +19,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Remove any dev SQLite database to start fresh
-RUN rm -f tournament_webapp/backend/data/tournament.db || true
-
 # Copy requirements first for better layer caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt && \
@@ -51,6 +48,10 @@ RUN mkdir -p /app/tournament_webapp/frontend && \
 
 # Copy the application code and entrypoint script
 COPY . .
+
+# Remove any dev SQLite database that may have come from repository
+RUN rm -f /app/tournament_webapp/backend/data/tournament.db || true
+
 COPY entrypoint.sh /app/entrypoint.sh
 
 # Create necessary directories and set permissions
