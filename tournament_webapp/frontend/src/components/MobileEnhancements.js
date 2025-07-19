@@ -165,6 +165,40 @@ const MobileEnhancements = ({ children, showOptimizationOverlay = false }) => {
   const [showMobileOverlay, setShowMobileOverlay] = useState(false);
   const touchTimeoutRef = useRef(null);
 
+  // Retrieve saved preference ("phone", "tablet", or "desktop")
+  const savedMobilePref = useRef(localStorage.getItem('mobileOptimizationPreference'));
+
+  // Helper to apply styles based on preference
+  const applyPreferenceStyles = (pref) => {
+    if (!pref) return;
+    if (pref === 'phone') {
+      document.body.style.fontSize = '18px';
+      document.body.style.lineHeight = '1.6';
+      document.querySelectorAll('button').forEach((btn) => {
+        btn.style.minHeight = '50px';
+        btn.style.padding = '12px 20px';
+      });
+    } else if (pref === 'tablet') {
+      document.body.style.fontSize = '16px';
+      document.querySelectorAll('button').forEach((btn) => {
+        btn.style.minHeight = '46px';
+      });
+    } else {
+      // desktop: reset any custom inline styles we previously set
+      document.body.style.fontSize = '';
+      document.body.style.lineHeight = '';
+      document.querySelectorAll('button').forEach((btn) => {
+        btn.style.minHeight = '';
+        btn.style.padding = '';
+      });
+    }
+  };
+
+  // Apply on mount
+  useEffect(() => {
+    applyPreferenceStyles(savedMobilePref.current);
+  }, []);
+
   // Detect mobile device
   useEffect(() => {
     const checkMobile = () => {
@@ -174,7 +208,12 @@ const MobileEnhancements = ({ children, showOptimizationOverlay = false }) => {
       
       setIsMobile(isMobileDevice || (isSmallScreen && hasTouchScreen));
       
-      if (showOptimizationOverlay && (isMobileDevice || isSmallScreen)) {
+      // Show the optimization overlay ONLY if the user has not previously made a choice
+      if (
+        showOptimizationOverlay &&
+        !savedMobilePref.current &&
+        (isMobileDevice || isSmallScreen)
+      ) {
         setShowMobileOverlay(true);
       }
     };
@@ -256,30 +295,29 @@ const MobileEnhancements = ({ children, showOptimizationOverlay = false }) => {
   const optimizeBattles = () => {
     VibrationFeedback.medium();
     setShowMobileOverlay(false);
+    // Persist user preference
+    localStorage.setItem('mobileOptimizationPreference', 'phone');
+    savedMobilePref.current = 'phone';
     
-    // Enable additional mobile optimizations
-    document.body.style.fontSize = '18px';
-    document.body.style.lineHeight = '1.6';
-    
-    // Increase button sizes
-    const buttons = document.querySelectorAll('button');
-    buttons.forEach(button => {
-      button.style.minHeight = '50px';
-      button.style.padding = '12px 20px';
-    });
+    applyPreferenceStyles('phone');
   };
 
   const enableTabletMode = () => {
     VibrationFeedback.light();
     setShowMobileOverlay(false);
+    // Persist user preference
+    localStorage.setItem('mobileOptimizationPreference', 'tablet');
+    savedMobilePref.current = 'tablet';
     
-    // Tablet-specific optimizations
-    document.body.style.fontSize = '16px';
-    
-    const buttons = document.querySelectorAll('button');
-    buttons.forEach(button => {
-      button.style.minHeight = '46px';
-    });
+    applyPreferenceStyles('tablet');
+  };
+
+  const continueAsDesktop = () => {
+    VibrationFeedback.light();
+    setShowMobileOverlay(false);
+    // Persist user preference
+    localStorage.setItem('mobileOptimizationPreference', 'desktop');
+    savedMobilePref.current = 'desktop';
   };
 
   return (
@@ -353,7 +391,7 @@ const MobileEnhancements = ({ children, showOptimizationOverlay = false }) => {
                     </MobileActionButton>
                     
                     <MobileActionButton
-                      onClick={() => setShowMobileOverlay(false)}
+                      onClick={continueAsDesktop}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       style={{ 

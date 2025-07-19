@@ -134,6 +134,7 @@
   - Responsive tournament views
   - Mobile audio player
   - Optimized animations for mobile
+  - **Mobile optimization overlay now respects prior user choice and persists preference** ✅
 
 ### Social & Gamification Features
 - [ ] **Achievement System**: Framework exists but incomplete
