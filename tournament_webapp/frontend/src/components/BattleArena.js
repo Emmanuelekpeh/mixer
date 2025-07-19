@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import Confetti from 'react-confetti';
 import { Card, Button, PageTransition } from './ui';
 import BattleAudioPlayer from './BattleAudioPlayer';
+import { pollMixJobUntilComplete } from '../utils/api';
 
 const ArenaContainer = styled(motion.div)`
   max-width: 1200px;
@@ -488,6 +489,27 @@ const BattleArena = ({ tournamentId, initialTournamentData, onComplete }) => {
 
     fetchTournament();
   }, [tournamentId, initialTournamentData]);
+
+  // Poll mix jobs when battle arena mounts
+  useEffect(() => {
+    if (!tournament?.mix_jobs || tournament.mix_jobs.length === 0) return;
+
+    const pendingJobs = tournament.mix_jobs.filter(j => !j.completed);
+
+    pendingJobs.forEach(job => {
+      pollMixJobUntilComplete(job.job_id)
+        .then(status => {
+          // Mark job as completed
+          setTournament(prev => {
+            const updatedJobs = prev.mix_jobs.map(j => j.job_id === job.job_id ? { ...j, completed: true, status } : j);
+            return { ...prev, mix_jobs: updatedJobs };
+          });
+        })
+        .catch(err => {
+          console.error('Job polling failed', err);
+        });
+    });
+  }, []);
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({

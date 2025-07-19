@@ -102,10 +102,53 @@ export const apiUpload = async (endpoint, formData, options = {}) => {
   return response;
 };
 
+/**
+ * Get mix-job status by ID
+ */
+export const getMixJobStatus = async (jobId) => {
+  const response = await apiGet(`/api/mix-jobs/${jobId}`);
+  if (!response.ok) {
+    throw new Error(`Job status request failed: ${response.status}`);
+  }
+  return await response.json();
+};
+
+/**
+ * Poll mix-job status until SUCCESS or FAILED.
+ * @param {string} jobId
+ * @param {number} intervalMs – polling interval (default 2000)
+ * @param {number} timeoutMs – max time before rejecting (default 120000)
+ * @returns {Promise<Object>} – final status object
+ */
+export const pollMixJobUntilComplete = (jobId, intervalMs = 2000, timeoutMs = 120000) => {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+
+    const check = async () => {
+      try {
+        const status = await getMixJobStatus(jobId);
+        if (status.status === 'success' || status.status === 'failed') {
+          return resolve(status);
+        }
+        if (Date.now() - start > timeoutMs) {
+          return reject(new Error('Job polling timed out'));
+        }
+        setTimeout(check, intervalMs);
+      } catch (err) {
+        reject(err);
+      }
+    };
+
+    check();
+  });
+};
+
 export default {
   getApiBaseUrl,
   apiGet,
   apiPost,
   apiPut,
-  apiUpload
+  apiUpload,
+  getMixJobStatus,
+  pollMixJobUntilComplete
 };

@@ -37,6 +37,9 @@ sleep 2
 echo "🔍 Attempting full application startup..."
 
 # Initialize database (non-blocking)
+echo "🗄️  Running Alembic migrations..."
+alembic upgrade head || echo "⚠️  Alembic failed or already up to date"
+
 echo "🗄️  Initializing database..."
 python -c "
 import sys

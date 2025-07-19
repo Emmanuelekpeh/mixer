@@ -636,6 +636,18 @@ class UserCreateRequest(BaseModel):
     user_id: str = Field(..., description="User identifier")
     username: str = Field(..., description="User display name")
 
+class UserUpdateRequest(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None
+    profile_data: Optional[dict] = None
+    preferences: Optional[dict] = None
+
+
+class TournamentUpdateRequest(BaseModel):
+    max_rounds: Optional[int] = None
+    status: Optional[str] = None  # allow cancel/completed updates
+    tournament_data: Optional[dict] = None
+
 # Tournament management endpoints
 @app.post("/api/tournaments/create-json")
 async def create_tournament_json(
@@ -818,34 +830,31 @@ async def create_tournament_with_upload(
                 pair = {
                     "model_a": {"id": model_a.id, "name": model_a.name, "architecture": model_a.architecture, "elo_rating": model_a.elo_rating, "tier": model_a.tier, "generation": model_a.generation},
                     "model_b": {"id": model_b.id, "name": model_b.name, "architecture": model_b.architecture, "elo_rating": model_b.elo_rating, "tier": model_b.tier, "generation": model_b.generation},
-                    "audio_a": f"/processed_audio/{tournament.id}_{model_a.id}_mix.wav",
-                    "audio_b": f"/processed_audio/{tournament.id}_{model_b.id}_mix.wav"
+                    "audio_a": get_storage().url_for(f"{tournament.id}_{model_a.id}_mix.wav"),
+                    "audio_b": get_storage().url_for(f"{tournament.id}_{model_b.id}_mix.wav")
                 }
                 pairs_data.append(pair)
           # Process audio with each model to create the actual mixed files
         try:
             logger.info(f"🎵 Processing audio for tournament {tournament.id}")
-              # Import AI mixer integration
-            from ai_mixer_integration_fixed import get_tournament_ai_mixer
-            ai_mixer = get_tournament_ai_mixer()
-            
+              # Enqueue asynchronous mix jobs for each model via Redis queue
+            mix_jobs = []
             for model in selected_models:
-                # Create the expected output file path
                 output_filename = f"{tournament.id}_{model.id}_mix.wav"
                 output_path = processed_audio_dir / output_filename
-                
-                # Use AI mixer to process audio with the specific model
-                success = ai_mixer.process_audio_with_model(
-                    str(saved_path),
-                    model.id,
-                    str(output_path)
+                job_id = enqueue_mix_job(
+                    audio_path=str(saved_path),
+                    model_id=model.id,
+                    output_path=str(output_path),
+                    tournament_id=tournament.id,
+                    user_id=tournament.user_id,
                 )
-                
-                if success:
-                    logger.info(f"🎵 AI processed audio with {model.id}: {output_filename}")
-                else:
-                    logger.warning(f"⚠️ Failed to process audio with {model.id}, using original")
-                
+                mix_jobs.append({
+                    "model_id": model.id,
+                    "job_id": job_id,
+                    "output_path": str(output_path),
+                })
+                logger.info(f"📨 Enqueued mix job {job_id} for model {model.id}")
         except Exception as audio_error:
             logger.warning(f"⚠️ Audio processing failed, using original: {str(audio_error)}")
             # Continue with tournament creation even if audio processing fails
@@ -869,6 +878,7 @@ async def create_tournament_with_upload(
             "tournament_id": tournament.id,
             "message": "Tournament created with uploaded audio",
             "original_filename": audio_file.filename,
+            "mix_jobs": mix_jobs,
             "tournament": {
                 "id": tournament.id,
                 "tournament_id": tournament.id,
@@ -1819,8 +1829,8 @@ async def create_quick_tournament(request: dict, db_service: DatabaseService = D
                         "elo_rating": model_b.elo_rating,
                         "tier": model_b.tier
                     },
-                    "audio_a": f"/demo_audio/{model_a.id}_mix.wav",
-                    "audio_b": f"/demo_audio/{model_b.id}_mix.wav"
+                    "audio_a": get_storage().url_for(f"{tournament.id}_{model_a.id}_mix.wav"),
+                    "audio_b": get_storage().url_for(f"{tournament.id}_{model_b.id}_mix.wav")
                 }
                 pairs_data.append(pair)
         
@@ -1906,8 +1916,8 @@ async def create_tournament_frontend(request: dict, db_service: DatabaseService 
                         "elo_rating": model_b.elo_rating,
                         "tier": model_b.tier
                     },
-                    "audio_a": f"/demo_audio/{model_a.id}_mix.wav",
-                    "audio_b": f"/demo_audio/{model_b.id}_mix.wav"
+                    "audio_a": get_storage().url_for(f"{tournament.id}_{model_a.id}_mix.wav"),
+                    "audio_b": get_storage().url_for(f"{tournament.id}_{model_b.id}_mix.wav")
                 }
                 pairs_data.append(pair)
         
@@ -2117,3 +2127,91 @@ async def manifest_file():
     if manifest_path and manifest_path.exists():
         return FileResponse(manifest_path, media_type="application/json")
     return JSONResponse({"name": "Mixture"})
+
+@app.get("/api/mix-jobs/{job_id}")
+async def get_mix_job_status(job_id: str):
+    """Return status details for a given mix job ID."""
+    return get_job_status(job_id)
+
+@app.get("/api/health/redis")
+async def redis_health_check():
+    """Simple health endpoint that validates Redis connectivity."""
+    try:
+        r = get_redis()
+        r.ping()
+        return {"status": "ok"}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Redis error: {exc}")
+
+# Cancel mix job
+
+from task_queue import cancel_job, MixJobStatus
+
+
+@app.post("/api/mix-jobs/{job_id}/cancel")
+async def cancel_mix_job(job_id: str):
+    cancelled = cancel_job(job_id)
+    return {"cancelled": cancelled, "status": MixJobStatus.CANCELLED}
+
+import asyncio
+from redis import Redis
+from tournament_webapp.backend.model_integration_system import quick_integrate_all
+
+MODEL_EVENTS_CHANNEL = "model_events"
+
+# Redis pubsub background listener
+
+@app.on_event("startup")
+async def start_model_event_listener():
+    try:
+        r = Redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"), decode_responses=True)
+        pubsub = r.pubsub()
+        pubsub.subscribe(MODEL_EVENTS_CHANNEL)
+
+        async def listener():
+            for message in pubsub.listen():
+                if message["type"] != "message":
+                    continue
+                payload = message["data"]
+                try:
+                    if isinstance(payload, bytes):
+                        payload = payload.decode()
+                    if "model_added" in str(payload):
+                        logger.info("🔄 Detected model_added event; refreshing model registry…")
+                        quick_integrate_all(auto_register=True, auto_integrate=True)
+                except Exception as exc:
+                    logger.warning("Model refresh failed: %s", exc)
+
+        asyncio.create_task(asyncio.to_thread(listener))
+    except Exception as exc:
+        logger.warning("Redis listener setup failed: %s (continuing)", exc)
+
+# Update user profile
+@app.put("/api/users/{user_id}")
+async def update_user_profile(user_id: str, request: UserUpdateRequest, db_service: DatabaseService = Depends(get_database_service)):
+    user = db_service.get_user(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    update_fields = request.dict(exclude_unset=True)
+    if not update_fields:
+        return {"success": False, "message": "No fields provided"}
+
+    for field, value in update_fields.items():
+        setattr(user, field, value)
+    db_service.commit()
+    return {"success": True, "user": user.__dict__}
+
+
+# Update tournament
+@app.put("/api/tournaments/{tournament_id}")
+async def update_tournament(tournament_id: str, request: TournamentUpdateRequest, db_service: DatabaseService = Depends(get_database_service)):
+    tournament = db_service.get_tournament(tournament_id)
+    if not tournament:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+
+    fields = request.dict(exclude_unset=True)
+    for k, v in fields.items():
+        setattr(tournament, k, v)
+    db_service.commit()
+    return {"success": True, "tournament": tournament.__dict__}

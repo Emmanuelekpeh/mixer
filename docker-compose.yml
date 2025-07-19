@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  api:
+    build: .
+    image: ai-mixer-api:latest
+    command: /app/entrypoint.sh
+    ports:
+      - "10000:8080"
+    environment:
+      PORT: "8080"
+      REDIS_URL: "redis://redis:6379/0"
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+
+  worker:
+    build: .
+    image: ai-mixer-worker:latest
+    command: /app/worker_entrypoint.sh
+    environment:
+      REDIS_URL: "redis://redis:6379/0"
+    volumes:
+      - .:/app
+    depends_on:
+      - redis 
+
+  model_manager:
+    build: .
+    command: /app/model_manager_entrypoint.sh
+    environment:
+      REDIS_URL: "redis://redis:6379/0"
+      MODEL_MANAGER_PORT: "8090"
+    depends_on:
+      - redis
+    ports:
+      - "8090:8090" 

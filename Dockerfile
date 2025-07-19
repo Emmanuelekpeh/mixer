@@ -53,6 +53,10 @@ COPY . .
 RUN rm -f /app/tournament_webapp/backend/data/tournament.db || true
 
 COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+COPY worker_entrypoint.sh /app/worker_entrypoint.sh
+RUN chmod +x /app/worker_entrypoint.sh
 
 # Create necessary directories and set permissions
 RUN mkdir -p /app/logs /app/data/mixed_outputs /app/tournament_webapp/uploads /app/models && \

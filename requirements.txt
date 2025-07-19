@@ -42,3 +42,7 @@ python-json-logger>=2.0.0
 
 # Optional monitoring (removed problematic ones)
 # prometheus-client>=0.14.0
+redis>=4.6.0
+fakeredis>=2.21.0
+alembic>=1.13.0
+boto3>=1.34.55

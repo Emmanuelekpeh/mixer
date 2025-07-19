@@ -669,6 +669,7 @@ const EnhancedTournamentSetup = ({ user, onUserLogin, onTournamentStart }) => {
         max_rounds: 5,
         audio_file: audioFile.name,
         pairs: tournamentData.pairs || [],
+        mix_jobs: tournamentData.mix_jobs || [],
         created_at: new Date().toISOString()
       };      
       toast.success('Tournament created successfully! Starting your mixing journey...');

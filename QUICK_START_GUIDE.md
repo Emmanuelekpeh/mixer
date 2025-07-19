@@ -153,3 +153,60 @@ python demo_ai_mixer.py
 ```
 
 **🎵 Welcome to Mixture - AI-powered music mixing! 🎛️**
+
+## Updated Quick-Start (Async Pipeline 2025-07-19)
+
+### Prerequisites
+1. Docker & Docker Compose ≥ v2
+2. Railway account (or local dev tools) / Redis & Postgres plugins if deploying
+
+### Local Development
+```bash
+# Build & start API, Worker, Model-Manager, Redis
+docker-compose up --build
+# API       → http://localhost:10000
+# Worker    → background logs only
+# ModelMgr  → http://localhost:8090/health
+```
+
+Environment variables can be overridden in a `.env` file – see below:
+```env
+# .env
+DATABASE_URL=postgresql://user:pass@dbhost:5432/mixer
+REDIS_URL=redis://redis:6379/0
+STORAGE_ROOT=/app/processed_audio
+STORAGE_BACKEND=local   # switch to s3 later
+```
+
+### Deployment on Railway
+1. Add **Redis** plugin – note the auto-generated `REDIS_URL` secret.
+2. Add **Postgres** plugin – copy `DATABASE_URL` secret.
+3. Main service (FastAPI):
+   * Start command: `/app/entrypoint.sh`
+   * Port: 8080 (exposed via 10000 in compose)
+4. Worker service:
+   * Start command: `/app/worker_entrypoint.sh`
+5. Model-Manager service:
+   * Start command: `/app/model_manager_entrypoint.sh`
+   * Port 8090 (optional)
+6. Add a **Volume** named `processed_audio` mounted at `/app/processed_audio` for persistent mixes.
+
+### Cancelling a Mix Job
+```bash
+POST /api/mix-jobs/{job_id}/cancel
+```
+Response:
+```json
+{"cancelled": true, "status": "cancelled"}
+```
+
+### Health Endpoints
+* API: `/api/health`, `/api/health/redis`
+* Worker: logs only (checks Redis)
+* Model-Manager: `/health`
+
+### Running Tests
+```bash
+pip install -r requirements.txt
+pytest -q
+```

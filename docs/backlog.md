@@ -81,11 +81,11 @@
   - Audio file output generation for battles
   - Quality metrics and analysis
 
-- [ ] **Async Task System**: Partially implemented
-  - Background task progress tracking
-  - Audio processing queue management
-  - Task cancellation and cleanup
-  - Error handling and retry logic
+- [x] **Async Task System**: Redis-backed queue & inference worker implemented ✅
+  - [x] Background task progress tracking via `/api/mix-jobs/{job_id}`
+  - [x] Audio processing queue management with Redis `mix_jobs` list
+  - [ ] Task cancellation and cleanup (TBD)
+  - [x] Error handling and retry logic inside worker (basic logging, status FAILED)
 
 ### Database & Persistence
 - [ ] **User Data Persistence**: Currently using localStorage only

@@ -12,10 +12,27 @@ import json
 import os
 from pathlib import Path
 
+# ---------------------------------------------------------------------------
 # Database configuration
-DATABASE_DIR = Path(__file__).parent / "data"
-DATABASE_DIR.mkdir(exist_ok=True)
-DATABASE_URL = f"sqlite:///{DATABASE_DIR}/tournament.db"
+# ---------------------------------------------------------------------------
+
+
+def get_database_url() -> str:
+    """Return DATABASE_URL from env or default to local SQLite file."""
+    env_url = os.getenv("DATABASE_URL")
+    if env_url:
+        print(f"🗄️  Using external database: {env_url}")
+        return env_url
+
+    # Fallback – local SQLite file for dev / tests
+    database_dir = Path(__file__).parent / "data"
+    database_dir.mkdir(exist_ok=True)
+    sqlite_url = f"sqlite:///{database_dir}/tournament.db"
+    print("🗄️  Using local SQLite database", sqlite_url)
+    return sqlite_url
+
+
+DATABASE_URL = get_database_url()
 
 # SQLAlchemy setup
 engine = create_engine(DATABASE_URL, echo=False)
